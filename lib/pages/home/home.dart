@@ -23,8 +23,8 @@ class _MyHomePageState extends UIState<MyHomePage> {
   void initState() {
     super.initState();
     if (client.status == null) {
-      _init().then((_) {
-        if (isNotClosed) {
+      _init().then((ok) {
+        if (ok && isNotClosed) {
           _getlist();
         }
       });
@@ -34,7 +34,7 @@ class _MyHomePageState extends UIState<MyHomePage> {
     }
   }
 
-  Future<void> _init() async {
+  Future<bool> _init() async {
     setState(() {
       disabled = true;
       _error = null;
@@ -43,16 +43,19 @@ class _MyHomePageState extends UIState<MyHomePage> {
       if (client.name.isNotEmpty) {
         await client.login();
       }
+      throw Exception('err');
       final status = await client.getStatus();
       client.status = status;
 
-      _getlist();
+      return true;
     } catch (e) {
       aliveSetState(() {
         disabled = false;
         _error = e;
+        debugPrint('$_error');
       });
     }
+    return false;
   }
 
   _getlist() {
@@ -84,6 +87,12 @@ class _MyHomePageState extends UIState<MyHomePage> {
       appBar: AppBar(
         title: Text(S.of(context).appName),
       ),
+      body: _error == null
+          ? null
+          : Text(
+              "$_error",
+              style: TextStyle(color: Theme.of(context).errorColor),
+            ),
     );
   }
 }
