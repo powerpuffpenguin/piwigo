@@ -3,8 +3,9 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import './rpc.dart';
 import './session.dart';
+import './categories.dart';
 
-class Client extends RpcClient with Session {
+class Client extends RpcClient with Session, Categories {
   Client({
     required String baseUrl,
     required String name,

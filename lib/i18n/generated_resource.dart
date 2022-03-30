@@ -15,6 +15,7 @@ mixin AppResource {
           "name": "cerberus",
         },
       );
+
   App get app => const App();
   Account get account => const Account();
   Reviews get reviews => const Reviews();

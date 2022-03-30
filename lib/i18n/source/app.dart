@@ -85,20 +85,22 @@ class Home {
         "Home.nameNotSupportEmpty",
         desc: '搜索名称不能为空',
       );
-  String get pluginNotSupportEmpty => Intl.message(
-        "Home.pluginNotSupportEmpty",
-        desc: '請選擇使用的插件',
+  String countPhoto(count) => Intl.message(
+        "$count photos",
+        name: 'countPhoto',
+        args: [count],
+        desc: "{count}張照片",
+        examples: const {
+          "count": 3,
+        },
       );
-  String get plugin => Intl.message(
-        "Home.plugin",
-        desc: '插件',
-      );
-  String get selectPlugin => Intl.message(
-        "Home.select plugin",
-        desc: '選擇插件',
-      );
-  String get nodata => Intl.message(
-        "Home.nodata",
-        desc: '沒有找到數據',
+  String countPhotoInSub(count) => Intl.message(
+        ", $count photos in sub-albums",
+        name: 'countPhotoInSub',
+        args: [count],
+        desc: "，{count}張照片在子相冊中",
+        examples: const {
+          "count": 4,
+        },
       );
 }

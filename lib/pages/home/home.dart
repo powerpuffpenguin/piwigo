@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:piwigo/db/data/account.dart';
+import 'package:flutter/widgets.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
+import 'package:piwigo/pages/home/view.dart';
+import 'package:piwigo/pages/widget/cover.dart';
 import 'package:piwigo/pages/widget/drawer.dart';
+import 'package:piwigo/pages/widget/spin.dart';
+import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
 import 'package:ppg_ui/ppg_ui.dart';
+
+Client? gclient;
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
@@ -16,11 +22,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends UIState<MyHomePage> {
-  Client get client => widget.client;
+  Client get client => gclient ?? widget.client;
   bool _inited = false;
   dynamic _error;
+  final _source = <Categorie>[];
   @override
   void initState() {
+    gclient = client;
     super.initState();
     if (client.status == null) {
       _init().then((ok) {
@@ -43,10 +51,8 @@ class _MyHomePageState extends UIState<MyHomePage> {
       if (client.name.isNotEmpty) {
         await client.login();
       }
-      throw Exception('err');
       final status = await client.getStatus();
       client.status = status;
-
       return true;
     } catch (e) {
       aliveSetState(() {
@@ -58,15 +64,20 @@ class _MyHomePageState extends UIState<MyHomePage> {
     return false;
   }
 
-  _getlist() {
-    if (enabled || _error != null) {
+  _getlist() async {
+    if (enabled || _error != null || !_inited) {
       setState(() {
         disabled = true;
         _error = null;
+        _inited = true;
       });
     }
     try {
+      final list = await client.getCategoriesList();
       aliveSetState(() {
+        _source
+          ..clear()
+          ..addAll(list);
         disabled = false;
       });
     } catch (e) {
@@ -88,11 +99,65 @@ class _MyHomePageState extends UIState<MyHomePage> {
         title: Text(S.of(context).appName),
       ),
       body: _error == null
-          ? null
+          ? _buildBody(context)
           : Text(
               "$_error",
               style: TextStyle(color: Theme.of(context).errorColor),
             ),
+      floatingActionButton: _buildFloatingActionButton(context),
     );
+  }
+
+  Widget? _buildBody(BuildContext context) {
+    return SingleChildScrollView(
+      child: Container(
+        alignment: Alignment.center,
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _source.map<Widget>((node) {
+            var text = S.of(context).home.countPhoto(node.images);
+            if (node.categories > 0 && node.categories >= node.images) {
+              text += S
+                  .of(context)
+                  .home
+                  .countPhotoInSub(node.categories - node.images);
+            }
+            return GestureDetector(
+              onTap: disabled
+                  ? null
+                  : () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => MyViewPage(
+                            client: client,
+                            categorie: node,
+                          ),
+                        ),
+                      );
+                    },
+              child: MyCover(
+                src: node.cover,
+                title: node.name,
+                text: text,
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget? _buildFloatingActionButton(BuildContext context) {
+    if (disabled) {
+      return createSpinFloating();
+    } else if (_error != null) {
+      return FloatingActionButton(
+        child: const Icon(Icons.refresh),
+        tooltip: S.of(context).app.refresh,
+        onPressed: _inited ? _getlist : _init,
+      );
+    }
+    return null;
   }
 }

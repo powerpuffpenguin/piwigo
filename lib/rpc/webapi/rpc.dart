@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:piwigo/utils/enum.dart';
 import 'package:piwigo/utils/json.dart';
 
 class PiwigoException implements Exception {
@@ -34,6 +35,41 @@ class Status {
         availableSizes = listFromJson(json['available_sizes']),
         uploadFileTypes = json['upload_file_types'] ?? '',
         uploadFormChunkSize = json['upload_form_chunk_size'] ?? 0;
+}
+
+class ImageSize extends Enum {
+  final bool unknow;
+  const ImageSize._(
+    int value,
+    String name, {
+    this.unknow = false,
+  }) : super(value, name);
+
+  /// 120 x 120
+  static const square = ImageSize._(1, 'square');
+
+  /// 144 x ?
+  static const thumb = ImageSize._(2, 'thumb');
+
+  /// 240
+  static const smallXX = ImageSize._(3, '2small');
+
+  /// 324
+  static const smallX = ImageSize._(4, 'xsmall');
+
+  /// 432
+  static const small = ImageSize._(5, 'small');
+
+  /// 594
+  static const medium = ImageSize._(6, 'medium');
+
+  /// 756
+  static const large = ImageSize._(7, 'large');
+
+  /// 1224
+  static const largeX = ImageSize._(8, 'xlarge');
+  // 1656
+  static const largeXX = ImageSize._(9, 'xxlarge');
 }
 
 abstract class RpcClient {
