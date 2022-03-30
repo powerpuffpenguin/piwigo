@@ -1,5 +1,5 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/home/view.dart';
 import 'package:piwigo/pages/widget/cover.dart';
@@ -26,6 +26,7 @@ class _MyHomePageState extends UIState<MyHomePage> {
   bool _inited = false;
   dynamic _error;
   final _source = <Categorie>[];
+  final _cancelToken = CancelToken();
   @override
   void initState() {
     gclient = client;
@@ -42,6 +43,15 @@ class _MyHomePageState extends UIState<MyHomePage> {
     }
   }
 
+  @override
+  void dispose() {
+    _cancelToken.cancel();
+    if (client.status != null) {
+      client.logout();
+    }
+    super.dispose();
+  }
+
   Future<bool> _init() async {
     setState(() {
       disabled = true;
@@ -49,9 +59,11 @@ class _MyHomePageState extends UIState<MyHomePage> {
     });
     try {
       if (client.name.isNotEmpty) {
-        await client.login();
+        await client.login(cancelToken: _cancelToken);
+        checkAlive();
       }
-      final status = await client.getStatus();
+      final status = await client.getStatus(cancelToken: _cancelToken);
+      checkAlive();
       client.status = status;
       return true;
     } catch (e) {
@@ -73,7 +85,7 @@ class _MyHomePageState extends UIState<MyHomePage> {
       });
     }
     try {
-      final list = await client.getCategoriesList();
+      final list = await client.getCategoriesList(cancelToken: _cancelToken);
       aliveSetState(() {
         _source
           ..clear()
@@ -109,9 +121,20 @@ class _MyHomePageState extends UIState<MyHomePage> {
   }
 
   Widget? _buildBody(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    AlignmentGeometry? alignment;
+    EdgeInsetsGeometry padding;
+    if (size.width <= MyCover.width * 2 + 8 * 3) {
+      alignment = Alignment.center;
+      padding = const EdgeInsets.only(top: 8);
+    } else {
+      alignment = Alignment.topLeft;
+      padding = const EdgeInsets.only(top: 8, left: 8);
+    }
     return SingleChildScrollView(
       child: Container(
-        alignment: Alignment.center,
+        alignment: alignment,
+        padding: padding,
         child: Wrap(
           spacing: 8,
           runSpacing: 8,

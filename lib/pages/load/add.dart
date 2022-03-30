@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:king011_icons/king011_icons.dart';
 import 'package:piwigo/db/data/account.dart';
@@ -32,6 +33,7 @@ class _MyAddPageState extends UIState<MyAddPage> {
   final _form = GlobalKey();
   var _visibility = false;
   dynamic _error;
+  final _cancelToken = CancelToken();
   @override
   void initState() {
     super.initState();
@@ -50,6 +52,7 @@ class _MyAddPageState extends UIState<MyAddPage> {
     _urlFocus.dispose();
     _nameFocus.dispose();
     _passwordFocus.dispose();
+    _cancelToken.cancel();
     super.dispose();
   }
 
@@ -79,10 +82,10 @@ class _MyAddPageState extends UIState<MyAddPage> {
         password: password,
       );
       if (name.isNotEmpty) {
-        await client.login();
+        await client.login(cancelToken: _cancelToken);
         checkAlive();
       }
-      final status = await client.getStatus();
+      final status = await client.getStatus(cancelToken: _cancelToken);
       checkAlive();
       client.status = status;
       // save db
