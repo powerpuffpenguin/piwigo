@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:piwigo/pages/widget/fullscreen/fullscreen.dart';
 import 'package:piwigo/pages/widget/video_full.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:ppg_ui/state/state.dart';
@@ -13,11 +14,14 @@ class MyVideo extends StatefulWidget {
     required this.image,
     required this.width,
     required this.height,
+    required this.fullscreenState,
+    required this.offset,
   }) : super(key: key);
+  final int offset;
   final PageImage image;
   final double width;
   final double height;
-
+  final FullscreenState<PageImage> fullscreenState;
   @override
   _MyVideoState createState() => _MyVideoState();
 }
@@ -67,10 +71,15 @@ class _MyVideoState extends UIState<MyVideo> {
     if (!controller.value.isInitialized) {
       return _buildInit(context, disabled: true);
     }
+    final duration = controller.value.duration;
+    final text =
+        '${duration.inMinutes}:${duration.inSeconds.remainder(60).toString().padLeft(2, '0')}';
     return GestureDetector(
       onDoubleTap: () {
+        widget.fullscreenState.offset = widget.offset;
         Navigator.of(context).push(MaterialPageRoute(builder: (context) {
           return MyVideoFull(
+            fullscreenState: widget.fullscreenState,
             controller: controller,
           );
         }));
@@ -90,6 +99,20 @@ class _MyVideoState extends UIState<MyVideo> {
               ),
             ),
           ),
+          _playing
+              ? Container()
+              : Container(
+                  padding: const EdgeInsets.only(top: 8, left: 8),
+                  width: widget.width,
+                  height: widget.height,
+                  child: Text(
+                    text,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyText1
+                        ?.copyWith(color: Colors.white),
+                  ),
+                ),
           _playing
               ? Container()
               : Container(

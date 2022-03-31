@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:piwigo/pages/widget/fullscreen/fullscreen.dart';
 import 'package:piwigo/pages/widget/fullscreen/view_controller.dart';
-import 'package:piwigo/pages/widget/video_controller.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
-import 'package:video_player/video_player.dart';
 
-class MyVideoFull extends StatefulWidget {
-  const MyVideoFull({
+class MyImageFull extends StatefulWidget {
+  const MyImageFull({
     Key? key,
-    required this.controller,
     required this.fullscreenState,
+    required this.image,
   }) : super(key: key);
-  final VideoPlayerController controller;
   final FullscreenState<PageImage> fullscreenState;
+  final PageImage image;
   @override
-  _MyVideoPlayerState createState() => _MyVideoPlayerState();
+  _MyImageFullState createState() => _MyImageFullState();
 }
 
-class _MyVideoPlayerState extends State<MyVideoFull> {
+class _MyImageFullState extends State<MyImageFull> {
+  FullscreenState<PageImage> get fullscreenState => widget.fullscreenState;
+  PageImage get image => widget.image;
   bool _showController = false;
   @override
   Widget build(BuildContext context) {
@@ -37,16 +37,11 @@ class _MyVideoPlayerState extends State<MyVideoFull> {
             child: Stack(
               children: <Widget>[
                 Center(
-                  child: Hero(
-                    tag: "player",
-                    child: AspectRatio(
-                      aspectRatio: widget.controller.value.aspectRatio,
-                      child: VideoPlayer(widget.controller),
-                    ),
+                  child: Image.network(
+                    image.derivatives.smallXX.url,
                   ),
                 ),
                 _buildFullscreenController(context),
-                _buildController(context),
               ],
             ),
           ),
@@ -63,25 +58,6 @@ class _MyVideoPlayerState extends State<MyVideoFull> {
       padding: const EdgeInsets.only(top: 16),
       child: MyViewController(
         fullscreenState: widget.fullscreenState,
-      ),
-    );
-  }
-
-  Widget _buildController(BuildContext context) {
-    if (_showController) {
-      return Container();
-    }
-    final size = MediaQuery.of(context).size;
-    return Container(
-      width: size.width,
-      height: size.height,
-      alignment: Alignment.bottomLeft,
-      child: MyVideoController(
-        controller: widget.controller,
-        fullscreen: true,
-        onFullscreen: (_) {
-          Navigator.of(context).pop();
-        },
       ),
     );
   }

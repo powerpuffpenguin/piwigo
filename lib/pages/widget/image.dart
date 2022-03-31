@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:piwigo/pages/widget/fullscreen/fullscreen.dart';
+import 'package:piwigo/pages/widget/image_full.dart';
 import 'package:piwigo/pages/widget/video.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/utils/wrap.dart';
@@ -10,11 +12,14 @@ class MyImage extends StatelessWidget {
     required this.image,
     required this.width,
     required this.height,
+    required this.fullscreenState,
+    required this.offset,
   }) : super(key: key);
-
+  final FullscreenState<PageImage> fullscreenState;
   final double width;
   final double height;
   final PageImage image;
+  final int offset;
   @override
   Widget build(BuildContext context) {
     final ext = path.extension(image.file).toLowerCase();
@@ -26,16 +31,29 @@ class MyImage extends StatelessWidget {
         ext == '.webmv' ||
         ext == '.strm') {
       return MyVideo(
+        fullscreenState: fullscreenState,
         width: width,
         height: height,
         image: image,
+        offset: offset,
       );
     }
-    return Image.network(
-      image.derivatives.smallXX.url,
-      width: width,
-      height: height,
-      fit: BoxFit.cover,
+    return GestureDetector(
+      onDoubleTap: () {
+        fullscreenState.offset = offset;
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+          return MyImageFull(
+            fullscreenState: fullscreenState,
+            image: image,
+          );
+        }));
+      },
+      child: Image.network(
+        image.derivatives.smallXX.url,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+      ),
     );
   }
 

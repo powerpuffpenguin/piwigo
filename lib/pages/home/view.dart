@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/widget/cover.dart';
+import 'package:piwigo/pages/widget/fullscreen/fullscreen.dart';
 import 'package:piwigo/pages/widget/image.dart';
 import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
@@ -45,6 +46,13 @@ class _MyViewPageState extends UIState<MyViewPage> {
   Categorie get categorie => widget.categorie;
   dynamic _error;
   final _categories = <Categorie>[];
+  FullscreenState<PageImage>? _fullscreenState;
+  FullscreenState<PageImage> get fullscreenState => _fullscreenState ??=
+      FullscreenState<PageImage>(source: _source.list, onChanged: _onChanged);
+  void _onChanged(List<PageImage> source, int i) {
+    debugPrint('onChanged $i');
+  }
+
   bool _completed = false;
   PageInfo? _pageinfo;
   bool _request = false;
@@ -270,7 +278,6 @@ class _MyViewPageState extends UIState<MyViewPage> {
     if (end > _source.list.length) {
       end = _source.list.length;
     }
-    final range = _source.list.getRange(start, end);
     if (!_request && !_completed && end >= _source.list.length - wrap.fit) {
       _request = true;
       final page = _pageinfo!.page + 1;
@@ -280,6 +287,19 @@ class _MyViewPageState extends UIState<MyViewPage> {
         }
       });
     }
+    final children = <Widget>[];
+    for (var i = start; i < end; i++) {
+      final node = _source.list[i];
+      children.add(
+        MyImage(
+          fullscreenState: fullscreenState,
+          image: node,
+          width: wrap.width,
+          height: wrap.height,
+          offset: i,
+        ),
+      );
+    }
     return Container(
       padding: EdgeInsets.only(left: wrap.spacing, right: wrap.spacing),
       alignment: Alignment.topCenter,
@@ -288,15 +308,7 @@ class _MyViewPageState extends UIState<MyViewPage> {
         padding: padding,
         width: wrap.viewWidth,
         child: Row(
-          children: range
-              .map<Widget>(
-                (node) => MyImage(
-                  image: node,
-                  width: wrap.width,
-                  height: wrap.height,
-                ),
-              )
-              .toList(),
+          children: children,
         ),
       ),
     );
