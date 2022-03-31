@@ -153,21 +153,17 @@ class _MyViewPageState extends UIState<MyViewPage> {
     if (_categories.isEmpty) {
       return Container();
     }
-    AlignmentGeometry? alignment;
-    EdgeInsetsGeometry padding;
-    if (size.width <= MyCover.width * 2 + 8 * 3) {
-      alignment = Alignment.center;
-      padding = const EdgeInsets.only(top: 8);
-    } else {
-      alignment = Alignment.topLeft;
-      padding = const EdgeInsets.only(top: 8, left: 8);
-    }
+    const spacing = 8.0;
+    final width = MyCover.calculateWidth(size.width - spacing * 2, spacing);
+    final height = MyCover.calculateHeight(width);
     return Container(
-      alignment: alignment,
-      padding: padding,
+      alignment: Alignment.center,
+      padding: _source.list.isEmpty
+          ? const EdgeInsets.only(top: spacing)
+          : const EdgeInsets.only(bottom: spacing),
       child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
+        spacing: spacing,
+        runSpacing: spacing,
         children: _categories.map<Widget>((node) {
           var text = S.of(context).home.countPhoto(node.images);
           if (node.categories > 0 && node.categories >= node.images) {
@@ -193,6 +189,8 @@ class _MyViewPageState extends UIState<MyViewPage> {
               src: node.cover,
               title: node.name,
               text: text,
+              width: width,
+              height: height,
             ),
           );
         }).toList(),
@@ -204,31 +202,15 @@ class _MyViewPageState extends UIState<MyViewPage> {
     if (_source.list.isEmpty) {
       return Container();
     }
-    var w = size.width - 8 * 2;
-    late double width;
-    late String Function(PageImage) getURL;
-    if (w <= 90 * 2) {
-      width = w;
-      getURL = PageImage.getThumb;
-    } else if (w < 100 * 3) {
-      width = w / 2;
-      getURL = PageImage.getThumb;
-    } else if (w <= 144 * 3) {
-      width = w / 3;
-      getURL = PageImage.getSmallXX;
-    } else {
-      width = w / (w / 144);
-      getURL = PageImage.getSmallXX;
-    }
-    var height = width * 9 / 16;
-
+    const spacing = 8.0;
+    final width = MyImage.calculateWidth(size.width - spacing * 2);
+    final height = MyImage.calculateHeight(width);
     return Container(
       alignment: Alignment.topCenter,
-      padding: const EdgeInsets.only(top: 8, bottom: 8),
+      padding: const EdgeInsets.only(top: spacing, bottom: spacing),
       child: Wrap(
         children: _source.list
             .map<Widget>((node) => MyImage(
-                  src: getURL(node),
                   image: node,
                   width: width,
                   height: height,

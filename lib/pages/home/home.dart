@@ -122,22 +122,16 @@ class _MyHomePageState extends UIState<MyHomePage> {
 
   Widget? _buildBody(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    AlignmentGeometry? alignment;
-    EdgeInsetsGeometry padding;
-    if (size.width <= MyCover.width * 2 + 8 * 3) {
-      alignment = Alignment.center;
-      padding = const EdgeInsets.only(top: 8);
-    } else {
-      alignment = Alignment.topLeft;
-      padding = const EdgeInsets.only(top: 8, left: 8);
-    }
+    const spacing = 8.0;
+    final width = MyCover.calculateWidth(size.width - spacing * 2, spacing);
+    final height = MyCover.calculateHeight(width);
     return SingleChildScrollView(
       child: Container(
-        alignment: alignment,
-        padding: padding,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.only(top: spacing, bottom: spacing),
         child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: spacing,
+          runSpacing: spacing,
           children: _source.map<Widget>((node) {
             var text = S.of(context).home.countPhoto(node.images);
             if (node.categories > 0 && node.categories >= node.images) {
@@ -160,6 +154,8 @@ class _MyHomePageState extends UIState<MyHomePage> {
                       );
                     },
               child: MyCover(
+                width: width,
+                height: height,
                 src: node.cover,
                 title: node.name,
                 text: text,

@@ -6,12 +6,38 @@ class MyCover extends StatelessWidget {
     required this.src,
     required this.title,
     this.text = '',
+    required this.width,
+    required this.height,
   }) : super(key: key);
   final String src;
   final String title;
   final String text;
-  static const width = 280.0;
-  static const height = width * 9 / 16;
+  final double width;
+  final double height;
+
+  /// 傳入佈局寬度，返回組件適合的寬度
+  static double calculateWidth(double w, double spacing) {
+    const min = 260.0;
+    const max = 290.0;
+    late double width; //[110,130]
+    if (w <= max) {
+      width = w;
+    } else if (w < min * 2 + spacing) {
+      width = max;
+    } else if (w < max * 2 + spacing) {
+      width = w / 2;
+    } else if (w < min * 3 + spacing * 2) {
+      width = max;
+    } else if (w < max * 3) {
+      width = w / 3;
+    } else {
+      width = max;
+    }
+    return width;
+  }
+
+  static double calculateHeight(double width) => width * 9 / 16;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
