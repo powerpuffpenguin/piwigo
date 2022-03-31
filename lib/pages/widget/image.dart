@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
+import 'package:piwigo/utils/wrap.dart';
 
 class MyImage extends StatelessWidget {
   const MyImage({
@@ -44,4 +45,26 @@ class MyImage extends StatelessWidget {
   }
 
   static double calculateHeight(double width) => width * 9 / 16;
+  static MyWrap calculateWrap(
+    Size size,
+    double spacing,
+    int count,
+  ) {
+    final w = size.width - spacing * 2;
+    final width = calculateWidth(w);
+    final height = calculateHeight(width);
+    final cols = w ~/ width;
+    final viewWidth = cols * width;
+    final fit = cols * size.height ~/ height;
+    final rows = (count + cols - 1) ~/ cols;
+    return MyWrap(
+      spacing: spacing,
+      viewWidth: viewWidth,
+      width: width,
+      height: height,
+      cols: cols,
+      rows: rows,
+      fit: fit,
+    );
+  }
 }

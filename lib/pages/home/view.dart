@@ -7,6 +7,7 @@ import 'package:piwigo/pages/widget/image.dart';
 import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
+import 'package:piwigo/utils/wrap.dart';
 import 'package:ppg_ui/ppg_ui.dart';
 
 class MyViewPage extends StatefulWidget {
@@ -148,13 +149,9 @@ class _MyViewPageState extends UIState<MyViewPage> {
   Widget? _buildBody(BuildContext context) {
     final size = MediaQuery.of(context).size;
     const spacing = 8.0;
-    final w = size.width - spacing * 2;
-    final width = MyImage.calculateWidth(w);
-    final height = MyImage.calculateHeight(width);
-    final cols = w ~/ width;
-    final viewWidth = cols * width;
-    final fix = cols * size.height ~/ height;
-    var count = (_source.list.length + cols - 1) ~/ cols + 1; // +1 bottom
+    final wrapImages =
+        MyImage.calculateWrap(size, spacing, _source.list.length);
+    var count = wrapImages.rows + 1; // +1 bottom
     if (_categories.isNotEmpty) {
       count++; // +1 top of _categories
     }
@@ -163,7 +160,6 @@ class _MyViewPageState extends UIState<MyViewPage> {
       itemBuilder: (context, index) {
         if (count == index + 1) {
           // bottom
-
           return const SizedBox(
             height: spacing,
           );
@@ -177,44 +173,10 @@ class _MyViewPageState extends UIState<MyViewPage> {
           }
         }
         // images
-        EdgeInsetsGeometry? padding;
-        if (index == 0) {
-          padding = const EdgeInsets.only(top: spacing);
-        }
-        final start = index * cols;
-        var end = start + cols;
-        if (end > _source.list.length) {
-          end = _source.list.length;
-        }
-        final range = _source.list.getRange(start, end);
-        if (!_request && !_completed && end >= _source.list.length - fix) {
-          _request = true;
-          final page = _pageinfo!.page + 1;
-          Future.value(page).then((page) {
-            if (isNotClosed) {
-              _getPage(page, force: true);
-            }
-          });
-        }
-        return Container(
-          padding: const EdgeInsets.only(left: spacing, right: spacing),
-          alignment: Alignment.topCenter,
-          child: Container(
-            alignment: Alignment.topLeft,
-            padding: padding,
-            width: viewWidth,
-            child: Row(
-              children: range
-                  .map<Widget>(
-                    (node) => MyImage(
-                      image: node,
-                      width: width,
-                      height: height,
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
+        return _buildImages(
+          context,
+          wrap: wrapImages,
+          index: index,
         );
       },
     );
@@ -263,6 +225,52 @@ class _MyViewPageState extends UIState<MyViewPage> {
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildImages(
+    BuildContext context, {
+    required MyWrap wrap,
+    required int index,
+  }) {
+    EdgeInsetsGeometry? padding;
+    if (index == 0) {
+      padding = EdgeInsets.only(top: wrap.spacing);
+    }
+    final start = index * wrap.cols;
+    var end = start + wrap.cols;
+    if (end > _source.list.length) {
+      end = _source.list.length;
+    }
+    final range = _source.list.getRange(start, end);
+    if (!_request && !_completed && end >= _source.list.length - wrap.fit) {
+      _request = true;
+      final page = _pageinfo!.page + 1;
+      Future.value(page).then((page) {
+        if (isNotClosed) {
+          _getPage(page, force: true);
+        }
+      });
+    }
+    return Container(
+      padding: EdgeInsets.only(left: wrap.spacing, right: wrap.spacing),
+      alignment: Alignment.topCenter,
+      child: Container(
+        alignment: Alignment.topLeft,
+        padding: padding,
+        width: wrap.viewWidth,
+        child: Row(
+          children: range
+              .map<Widget>(
+                (node) => MyImage(
+                  image: node,
+                  width: wrap.width,
+                  height: wrap.height,
+                ),
+              )
+              .toList(),
+        ),
       ),
     );
   }
