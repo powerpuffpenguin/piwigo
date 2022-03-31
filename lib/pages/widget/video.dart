@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:piwigo/pages/widget/video_full.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:ppg_ui/state/state.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -66,34 +67,46 @@ class _MyVideoState extends UIState<MyVideo> {
     if (!controller.value.isInitialized) {
       return _buildInit(context, disabled: true);
     }
-    return Stack(
-      children: [
-        Container(
-          color: const Color.fromARGB(255, 0, 0, 0),
-          width: widget.width,
-          height: widget.height,
-          alignment: Alignment.center,
-          child: AspectRatio(
-            aspectRatio: controller.value.aspectRatio,
-            child: VideoPlayer(controller),
-          ),
-        ),
-        _playing
-            ? Container()
-            : Container(
-                alignment: Alignment.center,
-                width: widget.width,
-                height: widget.height,
-                child: IconButton(
-                  icon: const Icon(Icons.video_collection_rounded),
-                  onPressed: () {
-                    _controller?.play().then((_) {
-                      _videoListener();
-                    });
-                  },
-                ),
+    return GestureDetector(
+      onDoubleTap: () {
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+          return MyVideoFull(
+            controller: controller,
+          );
+        }));
+      },
+      child: Stack(
+        children: [
+          Container(
+            color: const Color.fromARGB(255, 0, 0, 0),
+            width: widget.width,
+            height: widget.height,
+            alignment: Alignment.center,
+            child: Hero(
+              tag: "player",
+              child: AspectRatio(
+                aspectRatio: controller.value.aspectRatio,
+                child: VideoPlayer(controller),
               ),
-      ],
+            ),
+          ),
+          _playing
+              ? Container()
+              : Container(
+                  alignment: Alignment.center,
+                  width: widget.width,
+                  height: widget.height,
+                  child: IconButton(
+                    icon: const Icon(Icons.video_collection_rounded),
+                    onPressed: () {
+                      _controller?.play().then((_) {
+                        _videoListener();
+                      });
+                    },
+                  ),
+                ),
+        ],
+      ),
     );
   }
 
