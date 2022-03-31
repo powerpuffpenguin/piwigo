@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:piwigo/pages/widget/video.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/utils/wrap.dart';
+import 'package:path/path.dart' as path;
 
 class MyImage extends StatelessWidget {
   const MyImage({
@@ -15,6 +17,20 @@ class MyImage extends StatelessWidget {
   final PageImage image;
   @override
   Widget build(BuildContext context) {
+    final ext = path.extension(image.file).toLowerCase();
+    if (ext == '.ogg' ||
+        ext == '.ogv' ||
+        ext == '.mp4' ||
+        ext == '.m4v' ||
+        ext == '.webm' ||
+        ext == '.webmv' ||
+        ext == '.strm') {
+      return MyVideo(
+        width: width,
+        height: height,
+        image: image,
+      );
+    }
     return Image.network(
       image.derivatives.smallXX.url,
       width: width,
