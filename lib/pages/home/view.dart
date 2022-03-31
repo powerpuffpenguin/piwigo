@@ -46,6 +46,7 @@ class _MyViewPageState extends UIState<MyViewPage> {
   final _categories = <Categorie>[];
   bool _completed = false;
   PageInfo? _pageinfo;
+  bool _request = false;
   final _source = Source();
   final _cancelToken = CancelToken();
   @override
@@ -83,8 +84,12 @@ class _MyViewPageState extends UIState<MyViewPage> {
     }
   }
 
-  _getPage(int page) async {
-    setState(() => disabled = true);
+  _getPage(int page, {bool force = false}) async {
+    if (_request && !force) {
+      return;
+    }
+    debugPrint('get page: $page');
+    _request = true;
     try {
       final images = await client.getCategoriesImages(
         parent: categorie.id,
@@ -94,6 +99,8 @@ class _MyViewPageState extends UIState<MyViewPage> {
       checkAlive();
 
       final pageinfo = images.pageInfo;
+      debugPrint(
+          'page result: page=${pageinfo.page} count=${pageinfo.count} images=${images.list.length}');
       _completed = pageinfo.completed();
       _pageinfo = pageinfo;
       aliveSetState(() {
@@ -103,8 +110,9 @@ class _MyViewPageState extends UIState<MyViewPage> {
     } catch (e) {
       if (isNotClosed) {
         BotToast.showText(text: '$e');
-        setState(() => disabled = false);
       }
+    } finally {
+      _request = false;
     }
   }
 
@@ -139,13 +147,76 @@ class _MyViewPageState extends UIState<MyViewPage> {
 
   Widget? _buildBody(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          _buildCategories(context, size),
-          _buildImages(context, size),
-        ],
-      ),
+    const spacing = 8.0;
+    final w = size.width - spacing * 2;
+    final width = MyImage.calculateWidth(w);
+    final height = MyImage.calculateHeight(width);
+    final cols = w ~/ width;
+    final viewWidth = cols * width;
+    final fix = cols * size.height ~/ height;
+    var count = (_source.list.length + cols - 1) ~/ cols + 1; // +1 bottom
+    if (_categories.isNotEmpty) {
+      count++; // +1 top of _categories
+    }
+    return ListView.builder(
+      itemCount: count,
+      itemBuilder: (context, index) {
+        if (count == index + 1) {
+          // bottom
+
+          return const SizedBox(
+            height: spacing,
+          );
+        }
+        // categories
+        if (_categories.isNotEmpty) {
+          if (index == 0) {
+            return _buildCategories(context, size);
+          } else {
+            index--;
+          }
+        }
+        // images
+        EdgeInsetsGeometry? padding;
+        if (index == 0) {
+          padding = const EdgeInsets.only(top: spacing);
+        }
+        final start = index * cols;
+        var end = start + cols;
+        if (end > _source.list.length) {
+          end = _source.list.length;
+        }
+        final range = _source.list.getRange(start, end);
+        if (!_request && !_completed && end >= _source.list.length - fix) {
+          _request = true;
+          final page = _pageinfo!.page + 1;
+          Future.value(page).then((page) {
+            if (isNotClosed) {
+              _getPage(page, force: true);
+            }
+          });
+        }
+        return Container(
+          padding: const EdgeInsets.only(left: spacing, right: spacing),
+          alignment: Alignment.topCenter,
+          child: Container(
+            alignment: Alignment.topLeft,
+            padding: padding,
+            width: viewWidth,
+            child: Row(
+              children: range
+                  .map<Widget>(
+                    (node) => MyImage(
+                      image: node,
+                      width: width,
+                      height: height,
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -158,9 +229,7 @@ class _MyViewPageState extends UIState<MyViewPage> {
     final height = MyCover.calculateHeight(width);
     return Container(
       alignment: Alignment.center,
-      padding: _source.list.isEmpty
-          ? const EdgeInsets.only(top: spacing)
-          : const EdgeInsets.only(bottom: spacing),
+      padding: const EdgeInsets.only(top: spacing),
       child: Wrap(
         spacing: spacing,
         runSpacing: spacing,
@@ -194,28 +263,6 @@ class _MyViewPageState extends UIState<MyViewPage> {
             ),
           );
         }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildImages(BuildContext context, Size size) {
-    if (_source.list.isEmpty) {
-      return Container();
-    }
-    const spacing = 8.0;
-    final width = MyImage.calculateWidth(size.width - spacing * 2);
-    final height = MyImage.calculateHeight(width);
-    return Container(
-      alignment: Alignment.topCenter,
-      padding: const EdgeInsets.only(top: spacing, bottom: spacing),
-      child: Wrap(
-        children: _source.list
-            .map<Widget>((node) => MyImage(
-                  image: node,
-                  width: width,
-                  height: height,
-                ))
-            .toList(),
       ),
     );
   }
