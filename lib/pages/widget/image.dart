@@ -50,6 +50,16 @@ class MyImage extends StatelessWidget {
     double spacing,
     int count,
   ) {
+    if (count == 0) {
+      return const MyWrap(
+          spacing: 0,
+          viewWidth: 0,
+          width: 0,
+          height: 0,
+          cols: 0,
+          rows: 0,
+          fit: 0);
+    }
     final w = size.width - spacing * 2;
     final width = calculateWidth(w);
     final height = calculateHeight(width);

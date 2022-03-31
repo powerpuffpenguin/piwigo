@@ -75,7 +75,11 @@ class _MyViewPageState extends UIState<MyViewPage> {
           ..clear()
           ..addAll(list);
         disabled = false;
-        _getPage(0);
+        if (widget.categorie.images > 0) {
+          _getPage(0);
+        } else {
+          _completed = true;
+        }
       });
     } catch (e) {
       aliveSetState(() {
@@ -147,13 +151,18 @@ class _MyViewPageState extends UIState<MyViewPage> {
   }
 
   Widget? _buildBody(BuildContext context) {
+    if (_source.list.isEmpty && _categories.isEmpty) {
+      return null;
+    }
     final size = MediaQuery.of(context).size;
     const spacing = 8.0;
     final wrapImages =
         MyImage.calculateWrap(size, spacing, _source.list.length);
-    var count = wrapImages.rows + 1; // +1 bottom
-    if (_categories.isNotEmpty) {
-      count++; // +1 top of _categories
+    final wrapCategories =
+        MyCover.calculateWrap(size, spacing, _categories.length);
+    var count = wrapImages.rows + wrapCategories.rows + 1;
+    if (count == 1) {
+      return null;
     }
     return ListView.builder(
       itemCount: count,
@@ -165,14 +174,15 @@ class _MyViewPageState extends UIState<MyViewPage> {
           );
         }
         // categories
-        if (_categories.isNotEmpty) {
-          if (index == 0) {
-            return _buildCategories(context, size);
-          } else {
-            index--;
-          }
+        if (index < wrapCategories.rows) {
+          return _buildCategories(
+            context,
+            wrap: wrapCategories,
+            index: index,
+          );
         }
         // images
+        index -= wrapCategories.rows;
         return _buildImages(
           context,
           wrap: wrapImages,
@@ -182,49 +192,66 @@ class _MyViewPageState extends UIState<MyViewPage> {
     );
   }
 
-  Widget _buildCategories(BuildContext context, Size size) {
-    if (_categories.isEmpty) {
-      return Container();
+  Widget _buildCategories(
+    BuildContext context, {
+    required MyWrap wrap,
+    required int index,
+  }) {
+    final start = index * wrap.cols;
+    var end = start + wrap.cols;
+    if (end > _categories.length) {
+      end = _categories.length;
     }
-    const spacing = 8.0;
-    final width = MyCover.calculateWidth(size.width - spacing * 2, spacing);
-    final height = MyCover.calculateHeight(width);
+    final range = _categories.getRange(start, end);
+    var first = true;
     return Container(
-      alignment: Alignment.center,
-      padding: const EdgeInsets.only(top: spacing),
-      child: Wrap(
-        spacing: spacing,
-        runSpacing: spacing,
-        children: _categories.map<Widget>((node) {
-          var text = S.of(context).home.countPhoto(node.images);
-          if (node.categories > 0 && node.categories >= node.images) {
-            text += S
-                .of(context)
-                .home
-                .countPhotoInSub(node.categories - node.images);
-          }
-          return GestureDetector(
-            onTap: disabled
-                ? null
-                : () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => MyViewPage(
-                          client: client,
-                          categorie: node,
-                        ),
-                      ),
-                    );
-                  },
-            child: MyCover(
-              src: node.cover,
-              title: node.name,
-              text: text,
-              width: width,
-              height: height,
-            ),
-          );
-        }).toList(),
+      padding: EdgeInsets.only(left: wrap.spacing, right: wrap.spacing),
+      alignment: Alignment.topCenter,
+      child: Container(
+        alignment: Alignment.topLeft,
+        padding: EdgeInsets.only(top: wrap.spacing),
+        width: wrap.viewWidth,
+        child: Row(
+          children: range.map<Widget>((node) {
+            var text = S.of(context).home.countPhoto(node.images);
+            if (node.categories > 0 && node.categories >= node.images) {
+              text += S
+                  .of(context)
+                  .home
+                  .countPhotoInSub(node.categories - node.images);
+            }
+            EdgeInsetsGeometry? padding;
+            if (first) {
+              first = false;
+            } else {
+              padding = EdgeInsets.only(left: wrap.spacing);
+            }
+            return Container(
+              padding: padding,
+              child: GestureDetector(
+                onTap: disabled
+                    ? null
+                    : () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => MyViewPage(
+                              client: client,
+                              categorie: node,
+                            ),
+                          ),
+                        );
+                      },
+                child: MyCover(
+                  src: node.cover,
+                  title: node.name,
+                  text: text,
+                  width: wrap.width,
+                  height: wrap.height,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }

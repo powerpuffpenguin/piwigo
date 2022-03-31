@@ -7,6 +7,7 @@ import 'package:piwigo/pages/widget/drawer.dart';
 import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
+import 'package:piwigo/utils/wrap.dart';
 import 'package:ppg_ui/ppg_ui.dart';
 
 Client? gclient;
@@ -121,18 +122,41 @@ class _MyHomePageState extends UIState<MyHomePage> {
   }
 
   Widget? _buildBody(BuildContext context) {
+    if (_source.isEmpty) {
+      return null;
+    }
     final size = MediaQuery.of(context).size;
     const spacing = 8.0;
-    final width = MyCover.calculateWidth(size.width - spacing * 2, spacing);
-    final height = MyCover.calculateHeight(width);
-    return SingleChildScrollView(
+    final wrap = MyCover.calculateWrap(size, spacing, _source.length);
+
+    return ListView.builder(
+      itemCount: _source.length,
+      itemBuilder: (context, index) =>
+          _buildCategories(context, wrap: wrap, index: index),
+    );
+  }
+
+  Widget _buildCategories(
+    BuildContext context, {
+    required MyWrap wrap,
+    required int index,
+  }) {
+    final start = index * wrap.cols;
+    var end = start + wrap.cols;
+    if (end > _source.length) {
+      end = _source.length;
+    }
+    final range = _source.getRange(start, end);
+    var first = true;
+    return Container(
+      padding: EdgeInsets.only(left: wrap.spacing, right: wrap.spacing),
+      alignment: Alignment.topCenter,
       child: Container(
-        alignment: Alignment.center,
-        padding: const EdgeInsets.only(top: spacing, bottom: spacing),
-        child: Wrap(
-          spacing: spacing,
-          runSpacing: spacing,
-          children: _source.map<Widget>((node) {
+        alignment: Alignment.topLeft,
+        padding: EdgeInsets.only(top: wrap.spacing),
+        width: wrap.viewWidth,
+        child: Row(
+          children: range.map<Widget>((node) {
             var text = S.of(context).home.countPhoto(node.images);
             if (node.categories > 0 && node.categories >= node.images) {
               text += S
@@ -140,25 +164,34 @@ class _MyHomePageState extends UIState<MyHomePage> {
                   .home
                   .countPhotoInSub(node.categories - node.images);
             }
-            return GestureDetector(
-              onTap: disabled
-                  ? null
-                  : () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => MyViewPage(
-                            client: client,
-                            categorie: node,
+            EdgeInsetsGeometry? padding;
+            if (first) {
+              first = false;
+            } else {
+              padding = EdgeInsets.only(left: wrap.spacing);
+            }
+            return Container(
+              padding: padding,
+              child: GestureDetector(
+                onTap: disabled
+                    ? null
+                    : () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => MyViewPage(
+                              client: client,
+                              categorie: node,
+                            ),
                           ),
-                        ),
-                      );
-                    },
-              child: MyCover(
-                width: width,
-                height: height,
-                src: node.cover,
-                title: node.name,
-                text: text,
+                        );
+                      },
+                child: MyCover(
+                  src: node.cover,
+                  title: node.name,
+                  text: text,
+                  width: wrap.width,
+                  height: wrap.height,
+                ),
               ),
             );
           }).toList(),
