@@ -3,7 +3,16 @@ import 'package:tuple/tuple.dart';
 
 class SwiperController extends ValueNotifier<int> {
   SwiperController({int offset = 0}) : super(offset);
-  void swipeTo(int offset) {}
+  void swipeTo(int offset) {
+    if (_swipeTo != null) {
+      _swipeTo!(offset);
+    }
+  }
+
+  ValueChanged<int>? _swipeTo;
+  void setSwipeTo(ValueChanged<int>? f) {
+    _swipeTo = f;
+  }
 }
 
 class Swiper extends StatefulWidget {
@@ -35,6 +44,7 @@ enum _State {
   swipe,
   cancel,
   submit,
+  swipeTo,
 }
 
 class _SwiperState extends State<Swiper> {
@@ -46,14 +56,29 @@ class _SwiperState extends State<Swiper> {
     if (_controller == null) {
       _controller = widget.controller;
       _controller ??= SwiperController(offset: widget.initOffset ?? 0);
+      _controller!.setSwipeTo(_swipeTo);
     }
     return _controller!;
   }
 
   @override
   void dispose() {
-    controller.dispose();
+    if (_controller != null) {
+      _controller!.setSwipeTo(null);
+      _controller!.dispose();
+    }
     super.dispose();
+  }
+
+  int _swipeOffset = 0;
+  void _swipeTo(int offset) {
+    if (_state != _State.normal || offset == controller.value) {
+      return;
+    }
+    setState(() {
+      _swipeOffset = offset;
+      _state = _State.swipeTo;
+    });
   }
 
   var _state = _State.normal;
@@ -175,6 +200,8 @@ class _SwiperState extends State<Swiper> {
         return _buildCancel(context, width, height);
       case _State.submit:
         return _buildSubmit(context, width, height);
+      case _State.swipeTo:
+        return _buildSwipeTo(context, width, height);
       default: // _State.swipe
     }
     final offset =
@@ -243,17 +270,63 @@ class _SwiperState extends State<Swiper> {
     );
   }
 
+  Widget _buildSwipeTo(BuildContext context, double width, double height) {
+    final offset =
+        direction == Axis.horizontal ? Offset(_offset, 0) : Offset(0, _offset);
+    final other = _getSwipeTo(width, height, _swipeOffset);
+    if (other == null) {
+      _state = _State.cancel;
+      return _buildCancel(context, width, height);
+    }
+    final sub = direction == Axis.horizontal ? width : height;
+    var durantion =
+        Duration(milliseconds: (sub.toInt() - (_offset).toInt().abs()).abs());
+    if (durantion < min) {
+      durantion = min;
+    } else if (durantion > max) {
+      durantion = max;
+    }
+    var out = _getOut(offset, width, height);
+    return _SwiperAnimation(
+      duration: durantion,
+      onCompleted: () {
+        setState(() {
+          _state = _State.normal;
+          _offset = 0;
+          if (controller.value != other.item2) {
+            controller.value = other.item2;
+            if (widget.onChanged != null) {
+              widget.onChanged!(other.item2);
+            }
+          }
+        });
+      },
+      src: other.item1,
+      target: const Offset(0, 0),
+      builder: (context) => _buildItem(context, width, height, other.item2),
+      otherSrc: offset,
+      otherTarget: other.item2 > controller.value ? -out : out,
+      otherBuilder: (context) =>
+          _buildItem(context, width, height, controller.value),
+    );
+  }
+
   Widget _buildSubmit(BuildContext context, double width, double height) {
     final offset =
         direction == Axis.horizontal ? Offset(_offset, 0) : Offset(0, _offset);
     final other = _getOther(width, height);
+    if (other == null) {
+      _state = _State.cancel;
+      return _buildCancel(context, width, height);
+    }
     final sub = direction == Axis.horizontal ? width : height;
     var durantion = Duration(
         milliseconds:
             (sub.toInt() - (_offset).toInt().abs()).abs() * 100 ~/ 80);
-    if (other == null) {
-      _state = _State.cancel;
-      return _buildCancel(context, width, height);
+    if (durantion < min) {
+      durantion = min;
+    } else if (durantion > max) {
+      durantion = max;
     }
     return _SwiperAnimation(
       duration: durantion,
@@ -304,6 +377,19 @@ class _SwiperState extends State<Swiper> {
       // 滑動距離不夠忽略
       return null;
     }
+  }
+
+  Tuple2<Offset, int>? _getSwipeTo(double width, double height, int i) {
+    if (i < controller.value) {
+      final offet = direction == Axis.horizontal
+          ? Offset(_offset - width, 0)
+          : Offset(0, _offset - height);
+      return Tuple2(offet, i);
+    }
+    final offet = direction == Axis.horizontal
+        ? Offset(_offset + width, 0)
+        : Offset(0, _offset + height);
+    return Tuple2(offet, i);
   }
 
   Tuple2<Offset, int>? _getNext(double width, double height) {
