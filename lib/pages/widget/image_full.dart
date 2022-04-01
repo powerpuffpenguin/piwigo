@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 import 'package:piwigo/pages/widget/fullscreen/fullscreen.dart';
 import 'package:piwigo/pages/widget/fullscreen/view_controller.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
+import 'package:photo_view/photo_view.dart';
 
 class MyImageFull extends StatefulWidget {
   const MyImageFull({
@@ -21,32 +23,30 @@ class _MyImageFullState extends State<MyImageFull> {
   bool _showController = false;
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: Container(
-          color: Colors.black,
-          child: GestureDetector(
-            onDoubleTap: () {
-              Navigator.of(context).pop();
-            },
-            onTap: () {
-              setState(() {
-                _showController = !_showController;
-              });
-            },
-            child: Stack(
-              children: <Widget>[
-                Center(
-                  child: Image.network(
-                    image.derivatives.smallXX.url,
-                  ),
-                ),
-                _buildFullscreenController(context),
-              ],
-            ),
+    return Scaffold(
+      body: Container(
+        color: Colors.black,
+        child: GestureDetector(
+          onTap: () {
+            debugPrint('${Navigator.of(context)}');
+            setState(() {
+              _showController = !_showController;
+            });
+          },
+          child: Stack(
+            children: <Widget>[
+              _buildPhotoView(context),
+              _buildFullscreenController(context),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPhotoView(BuildContext context) {
+    return PhotoView(
+      imageProvider: NetworkImage(image.derivatives.smallXX.url),
     );
   }
 

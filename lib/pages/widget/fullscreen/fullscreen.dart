@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
+
 class FullscreenState<T> {
   /// 數據源
   final List<T> source;
-  final void Function(List<T>, int) onChanged;
+  final void Function(BuildContext context, List<T>, int) onChanged;
 
   /// 當前位置
   int offset;

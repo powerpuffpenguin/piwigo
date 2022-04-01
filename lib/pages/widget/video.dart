@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:piwigo/pages/widget/fullscreen/fullscreen.dart';
 import 'package:piwigo/pages/widget/video_full.dart';
+import 'package:piwigo/pages/widget/video_player_hero.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:ppg_ui/state/state.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -75,7 +76,7 @@ class _MyVideoState extends UIState<MyVideo> {
     final text =
         '${duration.inMinutes}:${duration.inSeconds.remainder(60).toString().padLeft(2, '0')}';
     return GestureDetector(
-      onDoubleTap: () {
+      onTap: () {
         widget.fullscreenState.offset = widget.offset;
         Navigator.of(context).push(MaterialPageRoute(builder: (context) {
           return MyVideoFull(
@@ -91,12 +92,9 @@ class _MyVideoState extends UIState<MyVideo> {
             width: widget.width,
             height: widget.height,
             alignment: Alignment.center,
-            child: Hero(
+            child: MyVideoPlayerHero(
               tag: "player",
-              child: AspectRatio(
-                aspectRatio: controller.value.aspectRatio,
-                child: VideoPlayer(controller),
-              ),
+              controller: controller,
             ),
           ),
           _playing
@@ -142,30 +140,34 @@ class _MyVideoState extends UIState<MyVideo> {
           height: height,
           fit: BoxFit.cover,
         ),
-        Container(
-          alignment: Alignment.center,
-          width: width,
-          height: height,
-          child: IconButton(
-            icon: const Icon(Icons.video_collection_rounded),
-            onPressed: disabled
-                ? null
-                : () {
-                    if (Platform.isAndroid || Platform.isIOS) {
-                      setState(() {
-                        _controller = VideoPlayerController.network(image.url)
-                          ..initialize().then((_) {
-                            // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-                            aliveSetState(() {
-                              _controller!.play();
+        GestureDetector(
+          child: Container(
+            alignment: Alignment.center,
+            width: width,
+            height: height,
+            child: IconButton(
+              icon: const Icon(Icons.video_collection_rounded),
+              onPressed: disabled
+                  ? null
+                  : () {
+                      if (Platform.isAndroid || Platform.isIOS) {
+                        setState(() {
+                          _controller = VideoPlayerController.network(image.url)
+                            ..setLooping(true)
+                            ..initialize().then((_) {
+                              // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+                              aliveSetState(() {
+                                _controller!.play();
+                              });
                             });
-                          });
-                        _controller!.addListener(_videoListener);
-                      });
-                    } else {
-                      launch(image.url);
-                    }
-                  },
+
+                          _controller!.addListener(_videoListener);
+                        });
+                      } else {
+                        launch(image.url);
+                      }
+                    },
+            ),
           ),
         ),
       ],

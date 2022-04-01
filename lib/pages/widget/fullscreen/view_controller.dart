@@ -19,7 +19,20 @@ class _MyViewControllerState extends State<MyViewController> {
     return IntrinsicHeight(
       child: Row(
         children: [
-          Expanded(child: Container()),
+          Expanded(
+            child: Row(
+              children: [
+                IconButton(
+                  color: Colors.white,
+                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          ),
           Row(
             children: [
               IconButton(
@@ -28,20 +41,22 @@ class _MyViewControllerState extends State<MyViewController> {
                 onPressed: fullscreenState.offset < 1
                     ? null
                     : () {
-                        fullscreenState.onChanged(
+                        fullscreenState.onChanged(context,
                             fullscreenState.source, fullscreenState.offset - 1);
                       },
               ),
               IconButton(
                 color: Colors.white,
                 icon: const Icon(Icons.navigate_next),
-                onPressed: fullscreenState.offset + 1 >=
-                        fullscreenState.source.length
-                    ? null
-                    : () {
-                        fullscreenState.onChanged(
-                            fullscreenState.source, fullscreenState.offset + 1);
-                      },
+                onPressed:
+                    fullscreenState.offset + 1 >= fullscreenState.source.length
+                        ? null
+                        : () {
+                            fullscreenState.onChanged(
+                                context,
+                                fullscreenState.source,
+                                fullscreenState.offset + 1);
+                          },
               ),
             ],
           ),

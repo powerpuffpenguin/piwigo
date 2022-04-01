@@ -130,7 +130,7 @@ class _MyHomePageState extends UIState<MyHomePage> {
     final wrap = MyCover.calculateWrap(size, spacing, _source.length);
 
     return ListView.builder(
-      itemCount: _source.length,
+      itemCount: wrap.rows,
       itemBuilder: (context, index) =>
           _buildCategories(context, wrap: wrap, index: index),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:piwigo/pages/widget/fullscreen/fullscreen.dart';
 import 'package:piwigo/pages/widget/fullscreen/view_controller.dart';
 import 'package:piwigo/pages/widget/video_controller.dart';
+import 'package:piwigo/pages/widget/video_player_hero.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:video_player/video_player.dart';
 
@@ -21,34 +22,26 @@ class _MyVideoPlayerState extends State<MyVideoFull> {
   bool _showController = false;
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: Container(
-          color: Colors.black,
-          child: GestureDetector(
-            onDoubleTap: () {
-              Navigator.of(context).pop();
-            },
-            onTap: () {
-              setState(() {
-                _showController = !_showController;
-              });
-            },
-            child: Stack(
-              children: <Widget>[
-                Center(
-                  child: Hero(
-                    tag: "player",
-                    child: AspectRatio(
-                      aspectRatio: widget.controller.value.aspectRatio,
-                      child: VideoPlayer(widget.controller),
-                    ),
-                  ),
+    return Scaffold(
+      body: Container(
+        color: Colors.black,
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              _showController = !_showController;
+            });
+          },
+          child: Stack(
+            children: <Widget>[
+              Center(
+                child: MyVideoPlayerHero(
+                  tag: "player",
+                  controller: widget.controller,
                 ),
-                _buildFullscreenController(context),
-                _buildController(context),
-              ],
-            ),
+              ),
+              _buildFullscreenController(context),
+              _buildController(context),
+            ],
           ),
         ),
       ),

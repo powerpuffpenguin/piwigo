@@ -49,7 +49,7 @@ class _MyViewPageState extends UIState<MyViewPage> {
   FullscreenState<PageImage>? _fullscreenState;
   FullscreenState<PageImage> get fullscreenState => _fullscreenState ??=
       FullscreenState<PageImage>(source: _source.list, onChanged: _onChanged);
-  void _onChanged(List<PageImage> source, int i) {
+  void _onChanged(BuildContext context, List<PageImage> source, int i) {
     debugPrint('onChanged $i');
   }
 
@@ -162,42 +162,43 @@ class _MyViewPageState extends UIState<MyViewPage> {
     if (_source.list.isEmpty && _categories.isEmpty) {
       return null;
     }
-    final size = MediaQuery.of(context).size;
-    const spacing = 8.0;
-    final wrapImages =
-        MyImage.calculateWrap(size, spacing, _source.list.length);
-    final wrapCategories =
-        MyCover.calculateWrap(size, spacing, _categories.length);
-    var count = wrapImages.rows + wrapCategories.rows + 1;
-    if (count == 1) {
-      return null;
-    }
-    return ListView.builder(
-      itemCount: count,
-      itemBuilder: (context, index) {
-        if (count == index + 1) {
-          // bottom
-          return const SizedBox(
-            height: spacing,
-          );
-        }
-        // categories
-        if (index < wrapCategories.rows) {
-          return _buildCategories(
+    return OrientationBuilder(builder: (context, orientation) {
+      final size = MediaQuery.of(context).size;
+      const spacing = 8.0;
+      bool portrait = orientation == Orientation.portrait;
+      final wrapImages = portrait
+          ? MyImage.calculateWrap(size, spacing, _source.list.length, count: 3)
+          : MyImage.calculateWrap(size, spacing, _source.list.length, count: 6);
+      final wrapCategories =
+          MyCover.calculateWrap(size, spacing, _categories.length);
+      var count = wrapImages.rows + wrapCategories.rows + 1;
+      return ListView.builder(
+        itemCount: count,
+        itemBuilder: (context, index) {
+          if (count == index + 1) {
+            // bottom
+            return const SizedBox(
+              height: spacing,
+            );
+          }
+          // categories
+          if (index < wrapCategories.rows) {
+            return _buildCategories(
+              context,
+              wrap: wrapCategories,
+              index: index,
+            );
+          }
+          // images
+          index -= wrapCategories.rows;
+          return _buildImages(
             context,
-            wrap: wrapCategories,
+            wrap: wrapImages,
             index: index,
           );
-        }
-        // images
-        index -= wrapCategories.rows;
-        return _buildImages(
-          context,
-          wrap: wrapImages,
-          index: index,
-        );
-      },
-    );
+        },
+      );
+    });
   }
 
   Widget _buildCategories(

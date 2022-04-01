@@ -39,7 +39,7 @@ class MyImage extends StatelessWidget {
       );
     }
     return GestureDetector(
-      onDoubleTap: () {
+      onTap: () {
         fullscreenState.offset = offset;
         Navigator.of(context).push(MaterialPageRoute(builder: (context) {
           return MyImageFull(
@@ -58,33 +58,68 @@ class MyImage extends StatelessWidget {
   }
 
   /// 傳入佈局寬度，返回組件適合的寬度
-  static double calculateWidth(double w) {
-    const min = 100.0;
-    const max = 115.0;
-    late double width;
+  static double calculateWidth(
+    double w, {
+    double min = 100,
+    double max = 115,
+    double fit = 220,
+    int count = 3,
+  }) {
+    assert(count > 0);
+    assert(min > 0);
+    assert(max >= min);
+    assert(fit >= max);
+
     if (w <= max) {
-      width = w;
-    } else if (w < min * 2) {
-      width = max;
-    } else if (w < max * 2) {
-      width = w / 2;
-    } else if (w < min * 3) {
-      width = max;
-    } else if (w < max * 3) {
-      width = w / 3;
-    } else {
-      width = max;
+      return w;
     }
-    return width;
+    for (var i = 1; i < count; i++) {
+      final n = i + 1;
+      if (w < min * n) {
+        return max;
+      } else if (w < max * n) {
+        return w / n;
+      }
+    }
+    if (w <= fit * count) {
+      return w / count;
+    }
+    return fit;
+    // late double width;
+    // if (w <= max) {
+    //   width = w;
+    // } else if (w < min * 2) {
+    //   width = max;
+    // } else if (w < max * 2) {
+    //   width = w / 2;
+    // } else if (w < min * 3) {
+    //   width = max;
+    // } else if (w < max * 3) {
+    //   width = w / 3;
+    // } else if (w < max * 6) {
+    //   width = max;
+    // } else {
+    //   max = 220;
+    //   if (w <= max * 6) {
+    //     width = w / 6;
+    //   } else {
+    //     width = max;
+    //   }
+    // }
+    // return width;
   }
 
   static double calculateHeight(double width) => width * 9 / 16;
   static MyWrap calculateWrap(
     Size size,
     double spacing,
-    int count,
-  ) {
-    if (count == 0) {
+    int length, {
+    double min = 100,
+    double max = 115,
+    double fit = 220,
+    int count = 3,
+  }) {
+    if (length == 0) {
       return const MyWrap(
           spacing: 0,
           viewWidth: 0,
@@ -95,12 +130,18 @@ class MyImage extends StatelessWidget {
           fit: 0);
     }
     final w = size.width - spacing * 2;
-    final width = calculateWidth(w);
+    final width = calculateWidth(
+      w,
+      min: min,
+      max: max,
+      fit: fit,
+      count: count,
+    );
     final height = calculateHeight(width);
     final cols = w ~/ width;
     final viewWidth = cols * width;
-    final fit = cols * size.height ~/ height;
-    final rows = (count + cols - 1) ~/ cols;
+    final fitHeight = cols * size.height ~/ height;
+    final rows = (length + cols - 1) ~/ cols;
     return MyWrap(
       spacing: spacing,
       viewWidth: viewWidth,
@@ -108,7 +149,7 @@ class MyImage extends StatelessWidget {
       height: height,
       cols: cols,
       rows: rows,
-      fit: fit,
+      fit: fitHeight,
     );
   }
 }
