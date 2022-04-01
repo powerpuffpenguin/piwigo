@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:piwigo/pages/dev/swiper.dart';
 
 class MyDevPage extends StatefulWidget {
   const MyDevPage({
@@ -10,22 +11,39 @@ class MyDevPage extends StatefulWidget {
 
 class _MyDevPageState extends State<MyDevPage> {
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('測試頁面'),
       ),
-      body: ListView(),
+      body: ListView(
+        children: [
+          TextButton(
+            child: const Text('horizontal swiper'),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const MyTestSwiperPage(
+                    direction: Axis.horizontal,
+                  ),
+                ),
+              );
+            },
+          ),
+          TextButton(
+            child: const Text('vertical swiper'),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const MyTestSwiperPage(
+                    direction: Axis.vertical,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

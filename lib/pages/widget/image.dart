@@ -5,7 +5,6 @@ import 'package:piwigo/pages/widget/video.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/utils/path.dart';
 import 'package:piwigo/utils/wrap.dart';
-import 'package:path/path.dart' as path;
 
 class MyImage extends StatelessWidget {
   const MyImage({
