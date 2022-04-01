@@ -80,6 +80,7 @@ class _MyVideoState extends UIState<MyVideo> {
         widget.fullscreenState.offset = widget.offset;
         Navigator.of(context).push(MaterialPageRoute(builder: (context) {
           return MyVideoFull(
+            image: widget.image,
             fullscreenState: widget.fullscreenState,
             controller: controller,
           );
@@ -140,34 +141,32 @@ class _MyVideoState extends UIState<MyVideo> {
           height: height,
           fit: BoxFit.cover,
         ),
-        GestureDetector(
-          child: Container(
-            alignment: Alignment.center,
-            width: width,
-            height: height,
-            child: IconButton(
-              icon: const Icon(Icons.video_collection_rounded),
-              onPressed: disabled
-                  ? null
-                  : () {
-                      if (Platform.isAndroid || Platform.isIOS) {
-                        setState(() {
-                          _controller = VideoPlayerController.network(image.url)
-                            ..setLooping(true)
-                            ..initialize().then((_) {
-                              // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-                              aliveSetState(() {
-                                _controller!.play();
-                              });
+        Container(
+          alignment: Alignment.center,
+          width: width,
+          height: height,
+          child: IconButton(
+            icon: const Icon(Icons.video_collection_rounded),
+            onPressed: disabled
+                ? null
+                : () {
+                    if (Platform.isAndroid || Platform.isIOS) {
+                      setState(() {
+                        _controller = VideoPlayerController.network(image.url)
+                          ..setLooping(true)
+                          ..initialize().then((_) {
+                            // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+                            aliveSetState(() {
+                              _controller!.play();
                             });
+                          });
 
-                          _controller!.addListener(_videoListener);
-                        });
-                      } else {
-                        launch(image.url);
-                      }
-                    },
-            ),
+                        _controller!.addListener(_videoListener);
+                      });
+                    } else {
+                      launch(image.url);
+                    }
+                  },
           ),
         ),
       ],

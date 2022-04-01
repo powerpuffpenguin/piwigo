@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:photo_view/photo_view_gallery.dart';
 import 'package:piwigo/pages/widget/fullscreen/fullscreen.dart';
 import 'package:piwigo/pages/widget/fullscreen/view_controller.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
@@ -47,6 +46,7 @@ class _MyImageFullState extends State<MyImageFull> {
   Widget _buildPhotoView(BuildContext context) {
     return PhotoView(
       imageProvider: NetworkImage(image.derivatives.smallXX.url),
+      initialScale: 1.0,
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:piwigo/pages/widget/fullscreen/fullscreen.dart';
 import 'package:piwigo/pages/widget/image_full.dart';
 import 'package:piwigo/pages/widget/video.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
+import 'package:piwigo/utils/path.dart';
 import 'package:piwigo/utils/wrap.dart';
 import 'package:path/path.dart' as path;
 
@@ -22,14 +23,7 @@ class MyImage extends StatelessWidget {
   final int offset;
   @override
   Widget build(BuildContext context) {
-    final ext = path.extension(image.file).toLowerCase();
-    if (ext == '.ogg' ||
-        ext == '.ogv' ||
-        ext == '.mp4' ||
-        ext == '.m4v' ||
-        ext == '.webm' ||
-        ext == '.webmv' ||
-        ext == '.strm') {
+    if (isVideoFile(image.file)) {
       return MyVideo(
         fullscreenState: fullscreenState,
         width: width,
@@ -85,28 +79,6 @@ class MyImage extends StatelessWidget {
       return w / count;
     }
     return fit;
-    // late double width;
-    // if (w <= max) {
-    //   width = w;
-    // } else if (w < min * 2) {
-    //   width = max;
-    // } else if (w < max * 2) {
-    //   width = w / 2;
-    // } else if (w < min * 3) {
-    //   width = max;
-    // } else if (w < max * 3) {
-    //   width = w / 3;
-    // } else if (w < max * 6) {
-    //   width = max;
-    // } else {
-    //   max = 220;
-    //   if (w <= max * 6) {
-    //     width = w / 6;
-    //   } else {
-    //     width = max;
-    //   }
-    // }
-    // return width;
   }
 
   static double calculateHeight(double width) => width * 9 / 16;

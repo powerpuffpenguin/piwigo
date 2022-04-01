@@ -41,22 +41,24 @@ class _MyViewControllerState extends State<MyViewController> {
                 onPressed: fullscreenState.offset < 1
                     ? null
                     : () {
-                        fullscreenState.onChanged(context,
-                            fullscreenState.source, fullscreenState.offset - 1);
+                        setState(() {
+                          fullscreenState.offset--;
+                          fullscreenState.onChanged(context, fullscreenState);
+                        });
                       },
               ),
               IconButton(
                 color: Colors.white,
                 icon: const Icon(Icons.navigate_next),
-                onPressed:
-                    fullscreenState.offset + 1 >= fullscreenState.source.length
-                        ? null
-                        : () {
-                            fullscreenState.onChanged(
-                                context,
-                                fullscreenState.source,
-                                fullscreenState.offset + 1);
-                          },
+                onPressed: fullscreenState.offset + 1 >=
+                        fullscreenState.source.length
+                    ? null
+                    : () {
+                        setState(() {
+                          fullscreenState.offset++;
+                          fullscreenState.onChanged(context, fullscreenState);
+                        });
+                      },
               ),
             ],
           ),
