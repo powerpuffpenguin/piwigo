@@ -14,12 +14,14 @@ class MyImage extends StatelessWidget {
     required this.height,
     required this.fullscreenState,
     required this.offset,
+    required this.onFullscreen,
   }) : super(key: key);
   final FullscreenState<PageImage> fullscreenState;
   final double width;
   final double height;
   final PageImage image;
   final int offset;
+  final VoidCallback onFullscreen;
   @override
   Widget build(BuildContext context) {
     if (isVideoFile(image.file)) {
@@ -33,13 +35,15 @@ class MyImage extends StatelessWidget {
     }
     return GestureDetector(
       onTap: () {
-        fullscreenState.offset = offset;
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-          return MyImageFull(
-            fullscreenState: fullscreenState,
-            image: image,
-          );
-        }));
+        onFullscreen();
+
+        // fullscreenState.offset = offset;
+        // Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+        //   return MyImageFull(
+        //     fullscreenState: fullscreenState,
+        //     image: image,
+        //   );
+        // }));
       },
       child: Image.network(
         image.derivatives.smallXX.url,
