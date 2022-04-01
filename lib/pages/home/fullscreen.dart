@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:photo_view/photo_view.dart';
+import 'package:piwigo/pages/widget/photo_view.dart';
 import 'package:piwigo/pages/widget/swiper/swiper.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 
@@ -18,45 +18,20 @@ class MyFullscreenPage extends StatefulWidget {
 class _MyFullscreenPageState extends State<MyFullscreenPage> {
   @override
   Widget build(BuildContext context) {
-    return Swiper(
-      controller: widget.controller,
-      itemCount: widget.source.length,
-      itemBuilder: (context, i) {
-        final node = widget.source[i];
-        return Listener(
-          onPointerMove: (v) {
-            // debugPrint('onPointerMove $v');
-          },
-          onPointerSignal: (v) {
-            debugPrint('onPointerSignal $v');
-          },
-          onPointerDown: (v) {
-            debugPrint('onPointerDown $v');
-          },
-          onPointerUp: (v) {
-            debugPrint('onPointerUp $v');
-          },
-          child: Listener(
-            onPointerMove: (v) {
-              // debugPrint('onPointerMove $v');
-            },
-            onPointerSignal: (v) {
-              debugPrint('onPointerSignal $v');
-            },
-            onPointerDown: (v) {
-              debugPrint('onPointerDown $v');
-            },
-            onPointerUp: (v) {
-              debugPrint('onPointerUp $v');
-            },
-            child: PhotoView(
-              imageProvider: NetworkImage(node.derivatives.smallXX.url),
-              initialScale: 1.0,
-              disableGestures: true,
-            ),
-          ),
-        );
-      },
+    return Scaffold(
+      body: Swiper(
+        controller: widget.controller,
+        itemCount: widget.source.length,
+        itemBuilder: (context, details) {
+          final image = widget.source[details.index];
+          return MyPhotoView(
+            image: image,
+            controller: widget.controller,
+            count: widget.source.length,
+            swipe: details.swipe,
+          );
+        },
+      ),
     );
   }
 }

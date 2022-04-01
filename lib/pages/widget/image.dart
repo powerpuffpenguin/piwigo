@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:piwigo/pages/widget/fullscreen/fullscreen.dart';
-import 'package:piwigo/pages/widget/image_full.dart';
 import 'package:piwigo/pages/widget/video.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/utils/path.dart';
@@ -34,17 +33,7 @@ class MyImage extends StatelessWidget {
       );
     }
     return GestureDetector(
-      onTap: () {
-        onFullscreen();
-
-        // fullscreenState.offset = offset;
-        // Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-        //   return MyImageFull(
-        //     fullscreenState: fullscreenState,
-        //     image: image,
-        //   );
-        // }));
-      },
+      onTap: onFullscreen,
       child: Image.network(
         image.derivatives.smallXX.url,
         width: width,

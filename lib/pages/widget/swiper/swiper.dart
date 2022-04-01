@@ -15,6 +15,27 @@ class SwiperController extends ValueNotifier<int> {
   }
 }
 
+enum GestureMode {
+  none,
+  listener,
+  gesture,
+}
+
+class BuildDetails {
+  /// 構建元素索引
+  final int index;
+
+  /// 是否處於滑動中
+  final bool swipe;
+  const BuildDetails({
+    required this.index,
+    required this.swipe,
+  });
+}
+
+typedef SwiperBuilder = Widget Function(
+    BuildContext context, BuildDetails details);
+
 class Swiper extends StatefulWidget {
   const Swiper({
     Key? key,
@@ -26,15 +47,17 @@ class Swiper extends StatefulWidget {
     this.width,
     this.height,
     this.onChanged,
+    this.gestureMode = GestureMode.listener,
   }) : super(key: key);
   final Axis direction;
   final int itemCount;
-  final IndexedWidgetBuilder itemBuilder;
+  final SwiperBuilder itemBuilder;
   final int? initOffset;
   final SwiperController? controller;
   final double? width;
   final double? height;
   final ValueChanged<int>? onChanged;
+  final GestureMode gestureMode;
   @override
   _SwiperState createState() => _SwiperState();
 }
@@ -50,7 +73,7 @@ enum _State {
 class _SwiperState extends State<Swiper> {
   Axis get direction => widget.direction;
   int get itemCount => widget.itemCount;
-  IndexedWidgetBuilder get itemBuilder => widget.itemBuilder;
+  SwiperBuilder get itemBuilder => widget.itemBuilder;
   SwiperController? _controller;
   SwiperController get controller {
     if (_controller == null) {
@@ -65,7 +88,9 @@ class _SwiperState extends State<Swiper> {
   void dispose() {
     if (_controller != null) {
       _controller!.setSwipeTo(null);
-      _controller!.dispose();
+      if (widget.controller == null) {
+        _controller!.dispose();
+      }
     }
     super.dispose();
   }
@@ -132,6 +157,49 @@ class _SwiperState extends State<Swiper> {
     }
   }
 
+  _onUpdate(double width, double height, Offset delta) {
+    if (_state == _State.normal) {
+      setState(() {
+        _state = _State.swipe;
+      });
+    } else if (_state != _State.swipe) {
+      return;
+    }
+    setState(() {
+      if (direction == Axis.horizontal) {
+        _offset += delta.dx;
+        if (_offset > width) {
+          _offset = width;
+        } else if (_offset < -width) {
+          _offset = -width;
+        }
+      } else {
+        _offset += delta.dy;
+        if (_offset > height) {
+          _offset = height;
+        } else if (_offset < -height) {
+          _offset = -height;
+        }
+      }
+    });
+  }
+
+  _onEnd(double width, double height) {
+    if (direction == Axis.horizontal) {
+      if (_offset.abs() > width / 2 * 4 / 3) {
+        _submit(width, height);
+      } else {
+        _cancel(width, height);
+      }
+    } else {
+      if (_offset.abs() > height * 2 * 4 / 3) {
+        _submit(width, height);
+      } else {
+        _cancel(width, height);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (itemCount == 0) {
@@ -140,62 +208,64 @@ class _SwiperState extends State<Swiper> {
     final size = MediaQuery.of(context).size;
     final width = widget.width ?? size.width;
     final height = widget.height ?? size.height;
-    return GestureDetector(
-      // onPanStart: (DragStartDetails details) {
-      //   debugPrint('onPanStart $details');
-      // },
-      onPanEnd: (DragEndDetails details) {
-        if (direction == Axis.horizontal) {
-          if (_offset.abs() > width / 2 * 4 / 3) {
-            _submit(width, height);
-          } else {
+    switch (widget.gestureMode) {
+      case GestureMode.listener:
+        return Listener(
+          // onPointerDown: (evt) {
+          //   debugPrint('onPointerDown ${evt.delta}');
+          // },
+          onPointerMove: (evt) {
+            // debugPrint('onPointerMove ${evt.delta}');
+            _onUpdate(width, height, evt.delta);
+          },
+          onPointerUp: (evt) {
+            _onEnd(width, height);
+            // debugPrint('onPointerUp ${evt.delta}');
+          },
+          // onPointerHover: (evt) {
+          //   debugPrint('onPointerHover $evt');
+          // },
+          onPointerCancel: (evt) {
             _cancel(width, height);
-          }
-        } else {
-          if (_offset.abs() > height * 2 * 4 / 3) {
-            _submit(width, height);
-          } else {
+          },
+          // onPointerSignal: (evt) {
+          //   debugPrint('onPointerSignal $evt');
+          // },
+          child: _buildBody(context, width, height),
+        );
+      case GestureMode.gesture:
+        return GestureDetector(
+          // onPanStart: (details) {
+          //   debugPrint('onPanStart $details');
+          // },
+          onPanEnd: (details) {
+            _onEnd(width, height);
+          },
+          onPanUpdate: (details) {
+            _onUpdate(width, height, details.delta);
+          },
+          onPanCancel: () {
             _cancel(width, height);
-          }
-        }
-      },
-      onPanUpdate: (DragUpdateDetails details) {
-        if (_state == _State.normal) {
-          setState(() {
-            _state = _State.swipe;
-          });
-        } else if (_state != _State.swipe) {
-          return;
-        }
-        setState(() {
-          if (direction == Axis.horizontal) {
-            _offset += details.delta.dx;
-            if (_offset > width) {
-              _offset = width;
-            } else if (_offset < -width) {
-              _offset = -width;
-            }
-          } else {
-            _offset += details.delta.dy;
-            if (_offset > height) {
-              _offset = height;
-            } else if (_offset < -height) {
-              _offset = -height;
-            }
-          }
-        });
-      },
-      onPanCancel: () {
-        _cancel(width, height);
-      },
-      child: _buildBody(context, width, height),
-    );
+          },
+          child: _buildBody(context, width, height),
+        );
+      default:
+        return _buildBody(context, width, height);
+    }
   }
 
   Widget _buildBody(BuildContext context, double width, double height) {
     switch (_state) {
       case _State.normal:
-        return _buildItem(context, width, height, controller.value);
+        return _buildItem(
+          context,
+          width,
+          height,
+          BuildDetails(
+            index: controller.value,
+            swipe: false,
+          ),
+        );
       case _State.cancel:
         return _buildCancel(context, width, height);
       case _State.submit:
@@ -208,17 +278,41 @@ class _SwiperState extends State<Swiper> {
         direction == Axis.horizontal ? Offset(_offset, 0) : Offset(0, _offset);
     final other = _getOther(width, height);
     if (other == null) {
-      return _buildItem(context, width, height, controller.value);
+      return _buildItem(
+        context,
+        width,
+        height,
+        BuildDetails(
+          index: controller.value,
+          swipe: false,
+        ),
+      );
     }
     return Stack(
       children: [
         Transform.translate(
           offset: other.item1,
-          child: _buildItem(context, width, height, other.item2),
+          child: _buildItem(
+            context,
+            width,
+            height,
+            BuildDetails(
+              index: other.item2,
+              swipe: true,
+            ),
+          ),
         ),
         Transform.translate(
           offset: offset,
-          child: _buildItem(context, width, height, controller.value),
+          child: _buildItem(
+            context,
+            width,
+            height,
+            BuildDetails(
+              index: controller.value,
+              swipe: true,
+            ),
+          ),
         ),
       ],
     );
@@ -247,12 +341,26 @@ class _SwiperState extends State<Swiper> {
         },
         src: offset,
         target: const Offset(0, 0),
-        builder: (context) =>
-            _buildItem(context, width, height, controller.value),
+        builder: (context) => _buildItem(
+          context,
+          width,
+          height,
+          BuildDetails(
+            index: controller.value,
+            swipe: true,
+          ),
+        ),
         otherSrc: other.item1,
         otherTarget: _getOut(other.item1, width, height),
-        otherBuilder: (context) =>
-            _buildItem(context, width, height, other.item2),
+        otherBuilder: (context) => _buildItem(
+          context,
+          width,
+          height,
+          BuildDetails(
+            index: other.item2,
+            swipe: true,
+          ),
+        ),
       );
     }
     return _SwiperAnimation(
@@ -265,8 +373,15 @@ class _SwiperState extends State<Swiper> {
       },
       src: offset,
       target: const Offset(0, 0),
-      builder: (context) =>
-          _buildItem(context, width, height, controller.value),
+      builder: (context) => _buildItem(
+        context,
+        width,
+        height,
+        BuildDetails(
+          index: controller.value,
+          swipe: true,
+        ),
+      ),
     );
   }
 
@@ -303,11 +418,26 @@ class _SwiperState extends State<Swiper> {
       },
       src: other.item1,
       target: const Offset(0, 0),
-      builder: (context) => _buildItem(context, width, height, other.item2),
+      builder: (context) => _buildItem(
+        context,
+        width,
+        height,
+        BuildDetails(
+          index: other.item2,
+          swipe: true,
+        ),
+      ),
       otherSrc: offset,
       otherTarget: other.item2 > controller.value ? -out : out,
-      otherBuilder: (context) =>
-          _buildItem(context, width, height, controller.value),
+      otherBuilder: (context) => _buildItem(
+        context,
+        width,
+        height,
+        BuildDetails(
+          index: controller.value,
+          swipe: true,
+        ),
+      ),
     );
   }
 
@@ -344,11 +474,26 @@ class _SwiperState extends State<Swiper> {
       },
       src: other.item1,
       target: const Offset(0, 0),
-      builder: (context) => _buildItem(context, width, height, other.item2),
+      builder: (context) => _buildItem(
+        context,
+        width,
+        height,
+        BuildDetails(
+          index: other.item2,
+          swipe: true,
+        ),
+      ),
       otherSrc: offset,
       otherTarget: _getOut(offset, width, height),
-      otherBuilder: (context) =>
-          _buildItem(context, width, height, controller.value),
+      otherBuilder: (context) => _buildItem(
+        context,
+        width,
+        height,
+        BuildDetails(
+          index: controller.value,
+          swipe: true,
+        ),
+      ),
     );
   }
 
@@ -416,11 +561,12 @@ class _SwiperState extends State<Swiper> {
     return Tuple2(offet, previous);
   }
 
-  Widget _buildItem(BuildContext context, double width, double height, int i) {
+  Widget _buildItem(
+      BuildContext context, double width, double height, BuildDetails details) {
     return SizedBox(
       width: width,
       height: height,
-      child: itemBuilder(context, i),
+      child: itemBuilder(context, details),
     );
   }
 }

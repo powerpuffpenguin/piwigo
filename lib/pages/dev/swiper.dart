@@ -64,9 +64,9 @@ class _MyTestSwiperPageState extends State<MyTestSwiperPage> {
           controller: _controller,
           direction: widget.direction,
           itemCount: urls.length,
-          itemBuilder: (context, i) {
+          itemBuilder: (context, details) {
             return Image.network(
-              urls[i],
+              urls[details.index],
               fit: BoxFit.fill,
             );
           },

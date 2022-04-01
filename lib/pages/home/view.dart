@@ -94,6 +94,12 @@ class _MyViewPageState extends UIState<MyViewPage> {
     });
   }
 
+  @override
+  void dispose() {
+    _swiperController.dispose();
+    super.dispose();
+  }
+
   _init() async {
     setState(() {
       _error = null;

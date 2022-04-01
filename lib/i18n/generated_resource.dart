@@ -3,6 +3,7 @@ import './source/app.dart';
 import './source/settings.dart';
 import './source/reviews.dart';
 import './source/account.dart';
+import './source/photo.dart';
 
 mixin AppResource {
   String get appName => Intl.message('App Name');
@@ -18,6 +19,7 @@ mixin AppResource {
 
   App get app => const App();
   Account get account => const Account();
+  Photo get photo => const Photo();
   Reviews get reviews => const Reviews();
   Error get error => const Error();
   Home get home => const Home();

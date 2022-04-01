@@ -101,6 +101,11 @@ class Derivative {
   String url;
   int width;
   int height;
+  Derivative({
+    required this.url,
+    required this.width,
+    required this.height,
+  });
   Derivative.fromJson(Map<String, dynamic> json)
       : url = json['url'] ?? '',
         width = intFromJson(json['width']),
