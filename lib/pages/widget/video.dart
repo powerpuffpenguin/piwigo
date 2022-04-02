@@ -1,10 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:piwigo/pages/widget/fullscreen/fullscreen.dart';
-import 'package:piwigo/pages/widget/video_full.dart';
-import 'package:piwigo/pages/widget/video_player_hero.dart';
+import 'package:piwigo/pages/widget/video/video_manage.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
+import 'package:piwigo/utils/path.dart';
 import 'package:ppg_ui/state/state.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
@@ -15,14 +14,12 @@ class MyVideo extends StatefulWidget {
     required this.image,
     required this.width,
     required this.height,
-    required this.fullscreenState,
-    required this.offset,
+    required this.onFullscreen,
   }) : super(key: key);
-  final int offset;
   final PageImage image;
   final double width;
   final double height;
-  final FullscreenState<PageImage> fullscreenState;
+  final VoidCallback onFullscreen;
   @override
   _MyVideoState createState() => _MyVideoState();
 }
@@ -31,28 +28,50 @@ class _MyVideoState extends UIState<MyVideo> {
   PageImage get image => widget.image;
   double get width => widget.width;
   double get height => widget.height;
-  VideoPlayerController? _controller;
+  MyPlayerController? _player;
+  VideoPlayerController? _videoPlayerController;
   bool _playing = false;
-  @override
-  void initState() {
-    super.initState();
+  _load() {
+    if (_player != null) {
+      return;
+    }
+    _player = MyVideoPlayerManage.get(image.url);
+    _initVideoPlayerController(_player!);
+  }
+
+  _initVideoPlayerController(MyPlayerController player) async {
+    try {
+      final controller = await player.initialize();
+      checkAlive();
+      await controller.play();
+      checkAlive();
+      if (_player != null) {
+        setState(() {
+          _videoPlayerController = controller;
+
+          _playing = controller.value.isPlaying;
+          controller.addListener(_videoListener);
+        });
+      }
+    } catch (_) {}
   }
 
   @override
   void dispose() {
-    if (_controller != null) {
-      _controller!.removeListener(_videoListener);
-      _controller!.dispose();
+    final player = _player;
+    if (player != null) {
+      _player = null;
+      _videoPlayerController?.removeListener(_videoListener);
+      MyVideoPlayerManage.put(player);
     }
-
     super.dispose();
   }
 
   void _videoListener() {
-    if (_controller == null) {
+    if (_videoPlayerController == null) {
       return;
     }
-    final controller = _controller!;
+    final controller = _videoPlayerController!;
     if (controller.value.isPlaying != _playing) {
       setState(() {
         _playing = controller.value.isPlaying;
@@ -62,84 +81,78 @@ class _MyVideoState extends UIState<MyVideo> {
 
   @override
   Widget build(BuildContext context) {
-    if (_controller != null) {
-      return _buildAndroid(context, _controller!);
+    if (_videoPlayerController != null) {
+      final controller = _videoPlayerController!;
+      return GestureDetector(
+        onDoubleTap: widget.onFullscreen,
+        onTap: () {
+          if (controller.value.isPlaying) {
+            controller.pause();
+          } else {
+            controller.play();
+          }
+        },
+        child: _buildVideo(context, _videoPlayerController!),
+      );
     }
-    return _buildInit(context);
-  }
-
-  Widget _buildAndroid(context, VideoPlayerController controller) {
-    if (!controller.value.isInitialized) {
-      return _buildInit(context, disabled: true);
-    }
-    final duration = controller.value.duration;
-    final text =
-        '${duration.inMinutes}:${duration.inSeconds.remainder(60).toString().padLeft(2, '0')}';
     return GestureDetector(
-      onTap: () {
-        widget.fullscreenState.offset = widget.offset;
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-          return MyVideoFull(
-            image: widget.image,
-            fullscreenState: widget.fullscreenState,
-            controller: controller,
-          );
-        }));
-      },
-      child: Stack(
-        children: [
-          Container(
-            color: const Color.fromARGB(255, 0, 0, 0),
-            width: widget.width,
-            height: widget.height,
-            alignment: Alignment.center,
-            child: MyVideoPlayerHero(
-              tag: "player",
-              controller: controller,
-            ),
-          ),
-          _playing
-              ? Container()
-              : Container(
-                  padding: const EdgeInsets.only(top: 8, left: 8),
-                  width: widget.width,
-                  height: widget.height,
-                  child: Text(
-                    text,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyText1
-                        ?.copyWith(color: Colors.white),
-                  ),
-                ),
-          _playing
-              ? Container()
-              : Container(
-                  alignment: Alignment.center,
-                  width: widget.width,
-                  height: widget.height,
-                  child: IconButton(
-                    icon: const Icon(Icons.video_collection_rounded),
-                    onPressed: () {
-                      _controller?.play().then((_) {
-                        _videoListener();
-                      });
-                    },
-                  ),
-                ),
-        ],
-      ),
+      onTap: widget.onFullscreen,
+      child: _buildInit(context),
     );
   }
 
-  Widget _buildInit(BuildContext context, {bool disabled = false}) {
+  Widget _buildVideo(
+    BuildContext context,
+    VideoPlayerController controller,
+  ) {
+    final duration = controller.value.duration;
+    final text =
+        '${duration.inMinutes}:${duration.inSeconds.remainder(60).toString().padLeft(2, '0')}';
+
     return Stack(
       children: [
-        Image.network(
-          image.derivatives.smallXX.url,
-          width: width,
-          height: height,
-          fit: BoxFit.cover,
+        Hero(
+          tag: "photoView_${widget.image.id}",
+          child: Container(
+            color: Colors.black,
+            alignment: Alignment.center,
+            width: widget.width,
+            height: widget.height,
+            child: AspectRatio(
+              aspectRatio: controller.value.aspectRatio,
+              child: VideoPlayer(controller),
+            ),
+          ),
+        ),
+        _playing
+            ? Container()
+            : Container(
+                padding: const EdgeInsets.only(top: 8, left: 8),
+                width: widget.width,
+                height: widget.height,
+                child: Text(
+                  text,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyText1
+                      ?.copyWith(color: Colors.white),
+                ),
+              ),
+      ],
+    );
+  }
+
+  Widget _buildInit(BuildContext context) {
+    return Stack(
+      children: [
+        Hero(
+          tag: "photoView_${widget.image.id}",
+          child: Image.network(
+            image.derivatives.smallXX.url,
+            width: width,
+            height: height,
+            fit: BoxFit.cover,
+          ),
         ),
         Container(
           alignment: Alignment.center,
@@ -147,24 +160,13 @@ class _MyVideoState extends UIState<MyVideo> {
           height: height,
           child: IconButton(
             icon: const Icon(Icons.video_collection_rounded),
-            onPressed: disabled
+            onPressed: _player != null
                 ? null
                 : () {
-                    if (Platform.isAndroid || Platform.isIOS) {
-                      setState(() {
-                        _controller = VideoPlayerController.network(image.url)
-                          ..setLooping(true)
-                          ..initialize().then((_) {
-                            // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-                            aliveSetState(() {
-                              _controller!.play();
-                            });
-                          });
-
-                        _controller!.addListener(_videoListener);
-                      });
+                    if (isSupportedVideo()) {
+                      _load();
                     } else {
-                      launch(image.url);
+                      launch(widget.image.url);
                     }
                   },
           ),

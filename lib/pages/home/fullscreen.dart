@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:piwigo/pages/widget/photo_view.dart';
 import 'package:piwigo/pages/widget/swiper/swiper.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
+import 'package:piwigo/utils/path.dart';
 
 class MyFullscreenPage extends StatefulWidget {
   const MyFullscreenPage({
@@ -42,6 +43,7 @@ class _MyFullscreenPageState extends State<MyFullscreenPage> {
         itemBuilder: (context, details) {
           final image = widget.source[details.index];
           return MyPhotoView(
+            isVideo: isVideoFile(image.file),
             image: image,
             controller: widget.controller,
             count: widget.source.length,

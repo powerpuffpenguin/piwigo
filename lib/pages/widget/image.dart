@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:piwigo/pages/widget/fullscreen/fullscreen.dart';
 import 'package:piwigo/pages/widget/video.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/utils/path.dart';
@@ -11,31 +10,26 @@ class MyImage extends StatelessWidget {
     required this.image,
     required this.width,
     required this.height,
-    required this.fullscreenState,
-    required this.offset,
     required this.onFullscreen,
   }) : super(key: key);
-  final FullscreenState<PageImage> fullscreenState;
   final double width;
   final double height;
   final PageImage image;
-  final int offset;
   final VoidCallback onFullscreen;
   @override
   Widget build(BuildContext context) {
     if (isVideoFile(image.file)) {
       return MyVideo(
-        fullscreenState: fullscreenState,
         width: width,
         height: height,
         image: image,
-        offset: offset,
+        onFullscreen: onFullscreen,
       );
     }
     return GestureDetector(
       onTap: onFullscreen,
       child: Hero(
-        tag: "imageView_${image.id}",
+        tag: "photoView_${image.id}",
         child: Image.network(
           image.derivatives.smallXX.url,
           width: width,

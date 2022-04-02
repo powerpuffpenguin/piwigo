@@ -6,12 +6,9 @@ class MyVideoController extends StatefulWidget {
   const MyVideoController({
     Key? key,
     required this.controller,
-    required this.fullscreen,
-    this.onFullscreen,
   }) : super(key: key);
   final VideoPlayerController controller;
-  final bool fullscreen;
-  final void Function(bool)? onFullscreen;
+
   @override
   _MyVideoControllerState createState() => _MyVideoControllerState();
 }
@@ -178,17 +175,6 @@ class _MyVideoControllerState extends UIState<MyVideoController> {
                 });
               },
             ),
-            widget.onFullscreen == null
-                ? Container()
-                : IconButton(
-                    color: color,
-                    icon: widget.fullscreen
-                        ? const Icon(Icons.fullscreen_exit)
-                        : const Icon(Icons.fullscreen),
-                    onPressed: () {
-                      widget.onFullscreen!(!widget.fullscreen);
-                    },
-                  ),
           ],
         ),
       ],

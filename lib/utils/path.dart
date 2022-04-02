@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:path/path.dart' as path;
 
 bool isVideoFile(String file) {
@@ -9,4 +11,8 @@ bool isVideoFile(String file) {
       ext == '.webm' ||
       ext == '.webmv' ||
       ext == '.strm';
+}
+
+bool isSupportedVideo() {
+  return Platform.isAndroid || Platform.isIOS;
 }

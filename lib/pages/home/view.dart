@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/home/fullscreen.dart';
 import 'package:piwigo/pages/widget/cover.dart';
-import 'package:piwigo/pages/widget/fullscreen/fullscreen.dart';
 import 'package:piwigo/pages/widget/image.dart';
 import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/pages/widget/swiper/swiper.dart';
@@ -49,11 +48,6 @@ class _MyViewPageState extends UIState<MyViewPage> {
   dynamic _error;
   final _categories = <Categorie>[];
   final _swiperController = SwiperController();
-  FullscreenState<PageImage>? _fullscreenState;
-  FullscreenState<PageImage> get fullscreenState => _fullscreenState ??=
-      FullscreenState<PageImage>(source: _source.list, onChanged: _onChanged);
-  void _onChanged(
-      BuildContext context, FullscreenState<PageImage> fullscreenState) {}
 
   bool _completed = false;
   PageInfo? _pageinfo;
@@ -301,11 +295,9 @@ class _MyViewPageState extends UIState<MyViewPage> {
       final node = _source.list[i];
       children.add(
         MyImage(
-          fullscreenState: fullscreenState,
           image: node,
           width: wrap.width,
           height: wrap.height,
-          offset: i,
           onFullscreen: () {
             Navigator.of(context).push(MaterialPageRoute(builder: (context) {
               _swiperController.value = i;

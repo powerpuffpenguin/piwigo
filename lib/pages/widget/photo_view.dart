@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/widget/swiper/swiper.dart';
+import 'package:piwigo/pages/widget/video/video_manage.dart';
+import 'package:piwigo/pages/widget/video_controller.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
+import 'package:piwigo/utils/path.dart';
 import 'package:tuple/tuple.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 
 class MyPhotoView extends StatefulWidget {
   const MyPhotoView({
@@ -14,6 +19,7 @@ class MyPhotoView extends StatefulWidget {
     required this.swipe,
     required this.initShowController,
     required this.onShowController,
+    required this.isVideo,
   }) : super(key: key);
   final PageImage image;
   final SwiperController controller;
@@ -21,6 +27,7 @@ class MyPhotoView extends StatefulWidget {
   final bool swipe;
   final bool initShowController;
   final ValueChanged<bool> onShowController;
+  final bool isVideo;
   @override
   _MyPhotoViewState createState() => _MyPhotoViewState();
 }
@@ -29,10 +36,41 @@ typedef _PhotoQuality = List<Tuple2<String, Derivative>>;
 
 class _MyPhotoViewState extends State<MyPhotoView> {
   bool _showController = false;
+  MyPlayerController? _player;
+  VideoPlayerController? _videoPlayerController;
+  bool _play = false;
   @override
   void initState() {
-    _showController = widget.initShowController;
     super.initState();
+    _showController = widget.initShowController;
+    if (widget.isVideo && isSupportedVideo()) {
+      _player = MyVideoPlayerManage.get(widget.image.url);
+      _videoPlayerController = _player!.controller;
+      if (_videoPlayerController == null) {
+        _initVideoPlayerController(_player!);
+      }
+    }
+  }
+
+  _initVideoPlayerController(MyPlayerController player) async {
+    try {
+      final controller = await player.initialize();
+      if (_player != null) {
+        setState(() {
+          _videoPlayerController = controller;
+        });
+      }
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    final player = _player;
+    if (player != null) {
+      _player = null;
+      MyVideoPlayerManage.put(player);
+    }
+    super.dispose();
   }
 
   final _keys = <int, int>{};
@@ -50,13 +88,18 @@ class _MyPhotoViewState extends State<MyPhotoView> {
       _add(photo.large, derivatives.large);
       _add(photo.largeX, derivatives.largeX);
       _add(photo.largeXX, derivatives.largeXX);
-      _quality!.add(Tuple2(
-          '${photo.original} (${image.width} x ${image.height})',
-          Derivative(
-            url: widget.image.url,
-            width: image.width,
-            height: image.height,
-          )));
+      if (!widget.isVideo) {
+        _quality!.add(
+          Tuple2(
+            '${photo.original} (${image.width} x ${image.height})',
+            Derivative(
+              url: widget.image.url,
+              width: image.width,
+              height: image.height,
+            ),
+          ),
+        );
+      }
     }
     return _quality!;
   }
@@ -92,6 +135,9 @@ class _MyPhotoViewState extends State<MyPhotoView> {
   Widget build(BuildContext context) {
     final value = _getValue(context);
     final qual = quality;
+    if (widget.isVideo && _videoPlayerController != null) {
+      return _buildVideo(context, qual, value, _videoPlayerController!);
+    }
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -103,13 +149,77 @@ class _MyPhotoViewState extends State<MyPhotoView> {
         children: [
           PhotoView(
             heroAttributes: PhotoViewHeroAttributes(
-              tag: "imageView_${widget.image.id}",
+              tag: "photoView_${widget.image.id}",
             ),
             imageProvider: NetworkImage(qual[value].item2.url),
           ),
+          widget.isVideo
+              ? Center(
+                  child: IconButton(
+                    iconSize: 64,
+                    onPressed: isSupportedVideo()
+                        ? null
+                        : () {
+                            launch(widget.image.url);
+                          },
+                    icon: const Icon(Icons.video_collection_rounded),
+                  ),
+                )
+              : Container(),
           _buildFullscreenControllerBackground(context),
           _buildFullscreenController(context, qual, value),
         ],
+      ),
+    );
+  }
+
+  Widget _buildVideo(
+    BuildContext context,
+    _PhotoQuality quality,
+    int value,
+    VideoPlayerController controller,
+  ) {
+    if (!_play) {
+      _play = true;
+      controller.play();
+    }
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _showController = !_showController;
+          widget.onShowController(_showController);
+        });
+      },
+      child: Stack(
+        children: [
+          Container(
+            color: Colors.black,
+            alignment: Alignment.center,
+            child: Hero(
+              tag: "photoView_${widget.image.id}",
+              child: AspectRatio(
+                aspectRatio: controller.value.aspectRatio,
+                child: VideoPlayer(controller),
+              ),
+            ),
+          ),
+          _buildFullscreenControllerBackground(context),
+          _buildFullscreenController(context, quality, value),
+          _buildVideoController(context, controller),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVideoController(
+      BuildContext context, VideoPlayerController controller) {
+    if (widget.swipe || !_showController) {
+      return Container();
+    }
+    return Container(
+      alignment: Alignment.bottomLeft,
+      child: MyVideoController(
+        controller: controller,
       ),
     );
   }
@@ -129,18 +239,16 @@ class _MyPhotoViewState extends State<MyPhotoView> {
     if (widget.swipe || !_showController) {
       return Container();
     }
-    return Container(
-      padding: const EdgeInsets.only(top: 8),
-      child: _MyPhotoController(
-          controller: widget.controller,
-          count: widget.count,
-          quality: quality,
-          value: value,
-          onChanged: (v) {
-            setState(() {
-              _value = v;
-            });
-          }),
+    return _MyPhotoController(
+      controller: widget.controller,
+      count: widget.count,
+      quality: quality,
+      value: value,
+      onChanged: (v) {
+        setState(() {
+          _value = v;
+        });
+      },
     );
   }
 }
