@@ -15,7 +15,7 @@ class MyPlayerController {
   Completer<VideoPlayerController>? _completer;
   VideoPlayerController? _controller;
   VideoPlayerController? get controller => _controller;
-
+  VideoPlayerController? _initialize;
   Future<VideoPlayerController> initialize() async {
     if (_completer != null) {
       return _completer!.future;
@@ -24,7 +24,13 @@ class MyPlayerController {
     _completer = completer;
     try {
       final controller = VideoPlayerController.network(url)..setLooping(true);
-      await controller.initialize();
+      _initialize = controller;
+      try {
+        await controller.initialize();
+      } catch (_) {
+        controller.dispose();
+        rethrow;
+      }
       _controller = controller;
       completer.complete(controller);
     } catch (e) {
@@ -41,14 +47,14 @@ class MyPlayerController {
       return;
     }
     try {
-      final controller = await _completer!.future;
-      controller.dispose();
+      // final controller = await _completer!.future;
+      _initialize?.dispose();
     } catch (_) {}
   }
 }
 
 class MyVideoPlayerManage {
-  static final _lru = Lru<String, MyPlayerController>(5);
+  static final _lru = Lru<String, MyPlayerController>(3);
   static final _keys = <String, MyPlayerController>{};
   static MyPlayerController get(String url) {
     final val = _keys[url];

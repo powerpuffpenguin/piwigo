@@ -1,11 +1,14 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
+import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/pages/widget/swiper/swiper.dart';
 import 'package:piwigo/pages/widget/video/video_manage.dart';
 import 'package:piwigo/pages/widget/video_controller.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/utils/path.dart';
+import 'package:ppg_ui/ppg_ui.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
@@ -34,7 +37,7 @@ class MyPhotoView extends StatefulWidget {
 
 typedef _PhotoQuality = List<Tuple2<String, Derivative>>;
 
-class _MyPhotoViewState extends State<MyPhotoView> {
+class _MyPhotoViewState extends UIState<MyPhotoView> {
   bool _showController = false;
   MyPlayerController? _player;
   VideoPlayerController? _videoPlayerController;
@@ -53,16 +56,16 @@ class _MyPhotoViewState extends State<MyPhotoView> {
     }
   }
 
+  dynamic _initVideoError;
   _initVideoPlayerController(MyPlayerController player) async {
-    debugPrint("$player");
     try {
       final controller = await player.initialize();
       if (_player != null) {
-        setState(() {
-          _videoPlayerController = controller;
-        });
+        aliveSetState(() => _videoPlayerController = controller);
       }
-    } catch (_) {}
+    } catch (e) {
+      aliveSetState(() => _initVideoError = e);
+    }
   }
 
   @override
@@ -155,22 +158,44 @@ class _MyPhotoViewState extends State<MyPhotoView> {
             ),
             imageProvider: NetworkImage(qual[value].item2.url),
           ),
-          widget.isVideo
-              ? Center(
-                  child: IconButton(
-                    iconSize: 64,
-                    onPressed: isSupportedVideo()
-                        ? null
-                        : () {
-                            launch(widget.image.url);
-                          },
-                    icon: const Icon(Icons.video_collection_rounded),
-                  ),
-                )
-              : Container(),
+          widget.isVideo ? _buildVideoFlag(context) : Container(),
           _buildFullscreenControllerBackground(context),
           _buildFullscreenController(context, qual, value),
         ],
+      ),
+    );
+  }
+
+  Widget _buildVideoFlag(BuildContext context) {
+    if (_initVideoError != null) {
+      return Center(
+        child: IntrinsicHeight(
+          child: Container(
+            color: const Color.fromARGB(200, 0, 0, 0),
+            child: buildError(context, _initVideoError),
+          ),
+        ),
+      );
+    }
+    if (_player != null) {
+      return const Center(
+        child: SizedBox(
+          height: 64,
+          child: FittedBox(
+            child: CupertinoActivityIndicator(),
+          ),
+        ),
+      );
+    }
+    return Center(
+      child: IconButton(
+        iconSize: 64,
+        onPressed: isSupportedVideo()
+            ? null
+            : () {
+                launch(widget.image.url);
+              },
+        icon: const Icon(Icons.video_collection_rounded),
       ),
     );
   }

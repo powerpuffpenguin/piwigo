@@ -191,13 +191,13 @@ class _SwiperState extends State<Swiper> {
 
   _onEnd(double width, double height) {
     if (direction == Axis.horizontal) {
-      if (_offset.abs() > width / 2) {
+      if (_offset.abs() > width / 3) {
         _submit(width, height);
       } else {
         _cancel(width, height);
       }
     } else {
-      if (_offset.abs() > height / 2) {
+      if (_offset.abs() > height / 3) {
         _submit(width, height);
       } else {
         _cancel(width, height);

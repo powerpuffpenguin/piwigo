@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:piwigo/pages/widget/video/video_manage.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
@@ -38,8 +39,10 @@ class _MyVideoState extends UIState<MyVideo> {
     if (_player != null) {
       return;
     }
-    _player = MyVideoPlayerManage.get(image.url);
-    _initVideoPlayerController(_player!);
+    setState(() {
+      _player = MyVideoPlayerManage.get(image.url);
+      _initVideoPlayerController(_player!);
+    });
   }
 
   _initVideoPlayerController(MyPlayerController player) async {
@@ -164,18 +167,25 @@ class _MyVideoState extends UIState<MyVideo> {
           alignment: Alignment.center,
           width: width,
           height: height,
-          child: IconButton(
-            icon: const Icon(Icons.video_collection_rounded),
-            onPressed: _player != null
-                ? null
-                : () {
-                    if (isSupportedVideo()) {
-                      _load();
-                    } else {
-                      launch(widget.image.url);
-                    }
-                  },
-          ),
+          child: _player != null
+              ? const SizedBox(
+                  height: 32,
+                  child: FittedBox(
+                    child: CupertinoActivityIndicator(),
+                  ),
+                )
+              : IconButton(
+                  icon: const Icon(Icons.video_collection_rounded),
+                  onPressed: _player != null
+                      ? null
+                      : () {
+                          if (isSupportedVideo()) {
+                            _load();
+                          } else {
+                            launch(widget.image.url);
+                          }
+                        },
+                ),
         ),
       ],
     );
