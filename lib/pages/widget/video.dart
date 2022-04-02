@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:piwigo/pages/widget/video/video_manage.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';

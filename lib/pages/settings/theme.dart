@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:piwigo/db/theme.dart';
@@ -16,10 +14,11 @@ class MySettingsThemePage extends StatefulWidget {
 }
 
 class _MySettingsThemePageState extends UIState<MySettingsThemePage> {
-  String? _theme;
+  late String _theme;
   @override
   void initState() {
     super.initState();
+    _theme = MyTheme.instance.value;
     addSubscription(MyTheme().subject.listen((v) {
       if (_theme != v) {
         setState(() {
@@ -31,28 +30,25 @@ class _MySettingsThemePageState extends UIState<MySettingsThemePage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () => Future.value(enabled),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(S.of(context).settings.theme),
-        ),
-        body: Builder(
-          builder: (context) => ListView(
-            children: MyTheme.supported
-                .map<Widget>((v) => _buildListTile(context, v))
-                .toList()
-              ..insert(0, _buildListTile(context, null)),
-          ),
-        ),
-        floatingActionButton: disabled ? createSpinFloating() : null,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(S.of(context).settings.theme),
       ),
+      body: Builder(
+        builder: (context) => ListView(
+          children: MyTheme.supported
+              .map<Widget>((v) => _buildListTile(context, v.item1))
+              .toList()
+            ..insert(0, _buildListTile(context, null)),
+        ),
+      ),
+      floatingActionButton: disabled ? createSpinFloating() : null,
     );
   }
 
   Widget _buildListTile(BuildContext context, String? theme) {
     return ListTile(
-      leading: _theme == theme
+      leading: _theme == (theme ?? '')
           ? Icon(
               Icons.check_circle,
               color: Theme.of(context).indicatorColor,
@@ -69,16 +65,18 @@ class _MySettingsThemePageState extends UIState<MySettingsThemePage> {
               });
               try {
                 if (theme == null) {
-                  await MyTheme().clear();
+                  await MyTheme().save('');
                 } else {
-                  await MyTheme().saveTheme(theme);
+                  await MyTheme().save(theme);
                 }
-              } catch (e) {
-                BotToast.showText(text: '$e');
-              } finally {
-                setState(() {
+                aliveSetState(() {
                   disabled = false;
                 });
+              } catch (e) {
+                if (isNotClosed) {
+                  BotToast.showText(text: '$e');
+                  disabled = false;
+                }
               }
             },
     );

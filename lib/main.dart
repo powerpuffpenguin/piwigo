@@ -5,7 +5,6 @@ import 'package:piwigo/db/language.dart';
 import 'package:piwigo/db/theme.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/account/account.dart';
-import 'package:piwigo/pages/dev/dev.dart';
 import 'package:piwigo/pages/load/add.dart';
 import 'package:piwigo/pages/load/load.dart';
 import 'package:piwigo/pages/settings/language.dart';
@@ -32,24 +31,22 @@ void main() async {
 class MyApp extends StatefulWidget {
   const MyApp({
     Key? key,
-    this.theme,
+    required this.theme,
     this.language,
   }) : super(key: key);
-  final String? theme;
+  final String theme;
   final String? language;
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends UIState<MyApp> {
-  String? _theme;
-  Brightness? _systemTheme;
-
+  late ThemeMode _themeMode;
   @override
   void initState() {
     super.initState();
 
-    _theme = widget.theme;
+    _themeMode = MyTheme.mode(widget.theme);
     var language = widget.language;
 
     final theme = MyTheme.instance;
@@ -62,18 +59,15 @@ class _MyAppState extends UIState<MyApp> {
           });
         }
       }),
-      theme.system.listen((event) {
-        if (isNotClosed && _systemTheme != event) {
-          setState(() {
-            _systemTheme = event;
-          });
-        }
-      }),
       theme.subject.listen((event) {
-        if (isNotClosed && _theme != event) {
-          setState(() {
-            _theme = event;
-          });
+        if (isNotClosed) {
+          final mode = MyTheme.mode(event);
+          if (mode != _themeMode) {
+            setState(() {
+              debugPrint("change theme to $mode");
+              _themeMode = mode;
+            });
+          }
         }
       })
     ]);
@@ -81,15 +75,6 @@ class _MyAppState extends UIState<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    if (_systemTheme == null) {
-      _systemTheme = MediaQuery.platformBrightnessOf(context);
-      MyTheme.instance.addSystem(_systemTheme!);
-    }
-
-    final themeData = MyTheme.getTheme(_theme) ??
-        (_systemTheme == Brightness.dark
-            ? ThemeData.dark()
-            : ThemeData.light());
     return MaterialApp(
       locale: MyLanguage.locale,
       localizationsDelegates: const [
@@ -100,7 +85,8 @@ class _MyAppState extends UIState<MyApp> {
       supportedLocales: supportedLanguage.map((v) => v.locale),
       localeResolutionCallback: MyLanguage.myLocaleResolutionCallback,
       onGenerateTitle: (context) => S.of(context).appName,
-      theme: themeData,
+      darkTheme: ThemeData.dark(),
+      themeMode: _themeMode,
       builder: BotToastInit(),
       initialRoute: MyRoutes.load,
       navigatorObservers: [
