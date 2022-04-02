@@ -60,5 +60,11 @@ $columnPassword TEXT DEFAULT ''
   @override
   Account fromMap(Map<String, dynamic> map) => Account.fromMap(map);
   @override
-  Map<String, dynamic> toMap(Account data) => data.toMap();
+  Map<String, dynamic> toMap(Account data, {bool insert = false}) {
+    final m = data.toMap();
+    if (insert) {
+      m.remove(columnID);
+    }
+    return m;
+  }
 }

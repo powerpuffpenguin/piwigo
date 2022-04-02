@@ -14,6 +14,10 @@ class Account {
         'Account.edit',
         desc: '編輯帳戶 按鈕/提示文本/標題',
       );
+  String get delete => Intl.message(
+        'Account.delete',
+        desc: '刪除帳戶 按鈕/提示文本/標題',
+      );
   String get url => Intl.message(
         'Account.url',
         desc: '網址',

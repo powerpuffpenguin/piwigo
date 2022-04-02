@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/rendering.dart';
 
 import './rpc.dart';
 
@@ -36,9 +35,6 @@ mixin Session on RpcClient {
         cancelToken: cancelToken,
       );
       final obj = decodeResponse(resp.data);
-      resp.headers.forEach((k, v) {
-        debugPrint("$k=$v");
-      });
       return Status.fromJson(obj['result']);
     } on DioError catch (e) {
       throw Exception('${e.message} ${e.response?.data}');

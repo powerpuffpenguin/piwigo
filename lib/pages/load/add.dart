@@ -107,7 +107,6 @@ class _MyAddPageState extends UIState<MyAddPage> {
         );
         checkAlive();
       }
-
       if (widget.push) {
         MySettings.instance.setAccount(account.id);
         Navigator.of(context).push(

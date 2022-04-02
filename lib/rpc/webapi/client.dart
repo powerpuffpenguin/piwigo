@@ -13,7 +13,7 @@ class Client extends RpcClient with Session, Categories {
   }) : super(
           dio: Dio()
             ..options.baseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'
-            ..interceptors.add(CookieManager(CookieJar())),
+            ..interceptors.add(CookieManager(CookieJar(ignoreExpires: true))),
           name: name,
           password: password,
         );

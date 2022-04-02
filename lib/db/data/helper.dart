@@ -10,7 +10,8 @@ abstract class Helper<T> {
 
   String get tableName => throw _exception('get tableName');
   T fromMap(Map<String, dynamic> map) => throw _exception('fromMap');
-  Map<String, dynamic> toMap(T data) => throw _exception('toMap');
+  Map<String, dynamic> toMap(T data, {bool insert = false}) =>
+      throw _exception('toMap');
 }
 
 mixin HasId {
@@ -79,13 +80,14 @@ mixin Executor<T> on Helper<T> {
 
   /// 添加一條記錄
   Future<int> add(T data,
-          {String? nullColumnHack, ConflictAlgorithm? conflictAlgorithm}) =>
-      db.insert(
-        tableName,
-        toMap(data),
-        nullColumnHack: nullColumnHack,
-        conflictAlgorithm: conflictAlgorithm,
-      );
+      {String? nullColumnHack, ConflictAlgorithm? conflictAlgorithm}) {
+    return db.insert(
+      tableName,
+      toMap(data, insert: true),
+      nullColumnHack: nullColumnHack,
+      conflictAlgorithm: conflictAlgorithm,
+    );
+  }
 
   /// 添加多條記錄
   FutureOr<List<int>> addAll(Iterable<T> iterable,
@@ -99,7 +101,7 @@ mixin Executor<T> on Helper<T> {
       for (var data in iterable) {
         result.add(await txn.insert(
           tableName,
-          toMap(data),
+          toMap(data, insert: true),
           nullColumnHack: nullColumnHack,
           conflictAlgorithm: conflictAlgorithm,
         ));

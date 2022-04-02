@@ -18,3 +18,7 @@ FloatingActionButton createSpinFloating() => const FloatingActionButton(
       ),
       onPressed: null,
     );
+Widget buildError(BuildContext context, error) => Text(
+      "$error",
+      style: TextStyle(color: Theme.of(context).errorColor),
+    );
