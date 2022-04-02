@@ -12,11 +12,15 @@ class MyPhotoView extends StatefulWidget {
     required this.controller,
     required this.count,
     required this.swipe,
+    required this.initShowController,
+    required this.onShowController,
   }) : super(key: key);
   final PageImage image;
   final SwiperController controller;
   final int count;
   final bool swipe;
+  final bool initShowController;
+  final ValueChanged<bool> onShowController;
   @override
   _MyPhotoViewState createState() => _MyPhotoViewState();
 }
@@ -25,6 +29,12 @@ typedef _PhotoQuality = List<Tuple2<String, Derivative>>;
 
 class _MyPhotoViewState extends State<MyPhotoView> {
   bool _showController = false;
+  @override
+  void initState() {
+    _showController = widget.initShowController;
+    super.initState();
+  }
+
   final _keys = <int, int>{};
   _PhotoQuality? _quality;
   _PhotoQuality get quality {
@@ -86,13 +96,15 @@ class _MyPhotoViewState extends State<MyPhotoView> {
       onTap: () {
         setState(() {
           _showController = !_showController;
+          widget.onShowController(_showController);
         });
       },
       child: Stack(
         children: [
           PhotoView(
-            heroAttributes:
-                PhotoViewHeroAttributes(tag: "imageView_${widget.image.id}"),
+            heroAttributes: PhotoViewHeroAttributes(
+              tag: "imageView_${widget.image.id}",
+            ),
             imageProvider: NetworkImage(qual[value].item2.url),
           ),
           _buildFullscreenControllerBackground(context),
