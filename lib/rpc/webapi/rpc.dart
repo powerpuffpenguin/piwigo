@@ -35,6 +35,11 @@ class Status {
         availableSizes = listFromJson(json['available_sizes']),
         uploadFileTypes = json['upload_file_types'] ?? '',
         uploadFormChunkSize = json['upload_form_chunk_size'] ?? 0;
+
+  @override
+  String toString() {
+    return 'username=$username status=$status uploadFileTypes=$uploadFileTypes';
+  }
 }
 
 class ImageSize extends Enum {

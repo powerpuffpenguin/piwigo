@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:piwigo/environment.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
+import 'package:piwigo/pages/dev/dev.dart';
 import 'package:piwigo/routes.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -181,7 +182,13 @@ class _MyDrawerViewState extends State<MyDrawerView> {
           onTap: widget.disabled
               ? null
               : () {
-                  Navigator.of(context).pushNamed(MyRoutes.dev);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => MyDevPage(
+                        client: widget.client,
+                      ),
+                    ),
+                  );
                 },
         ),
       ]);

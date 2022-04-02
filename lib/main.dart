@@ -107,7 +107,6 @@ class _MyAppState extends UIState<MyApp> {
         BotToastNavigatorObserver(),
       ],
       routes: {
-        MyRoutes.dev: (context) => const MyDevPage(),
         MyRoutes.load: (context) => const MyLoadPage(),
         MyRoutes.firstAdd: (context) => const MyAddPage(
               push: true,
