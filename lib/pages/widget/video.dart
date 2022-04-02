@@ -31,6 +31,11 @@ class _MyVideoState extends UIState<MyVideo> {
   MyPlayerController? _player;
   VideoPlayerController? _videoPlayerController;
   bool _playing = false;
+  String _text = '0:0';
+  String getDuration(Duration duration) {
+    return '${duration.inMinutes}:${duration.inSeconds.remainder(60).toString().padLeft(2, '0')}';
+  }
+
   _load() {
     if (_player != null) {
       return;
@@ -77,6 +82,12 @@ class _MyVideoState extends UIState<MyVideo> {
         _playing = controller.value.isPlaying;
       });
     }
+    final text = getDuration(controller.value.position);
+    if (text != _text) {
+      setState(() {
+        _text = text;
+      });
+    }
   }
 
   @override
@@ -106,8 +117,7 @@ class _MyVideoState extends UIState<MyVideo> {
     VideoPlayerController controller,
   ) {
     final duration = controller.value.duration;
-    final text =
-        '${duration.inMinutes}:${duration.inSeconds.remainder(60).toString().padLeft(2, '0')}';
+    final text = getDuration(duration);
 
     return Stack(
       children: [
@@ -124,20 +134,18 @@ class _MyVideoState extends UIState<MyVideo> {
             ),
           ),
         ),
-        _playing
-            ? Container()
-            : Container(
-                padding: const EdgeInsets.only(top: 8, left: 8),
-                width: widget.width,
-                height: widget.height,
-                child: Text(
-                  text,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyText1
-                      ?.copyWith(color: Colors.white),
-                ),
-              ),
+        Container(
+          padding: const EdgeInsets.only(top: 4, left: 4),
+          width: widget.width,
+          height: widget.height,
+          child: Text(
+            _playing ? '$_text / $text' : text,
+            style: Theme.of(context)
+                .textTheme
+                .bodyText1
+                ?.copyWith(color: Colors.white),
+          ),
+        )
       ],
     );
   }

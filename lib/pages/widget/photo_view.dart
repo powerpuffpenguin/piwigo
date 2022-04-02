@@ -43,6 +43,7 @@ class _MyPhotoViewState extends State<MyPhotoView> {
   void initState() {
     super.initState();
     _showController = widget.initShowController;
+
     if (widget.isVideo && isSupportedVideo()) {
       _player = MyVideoPlayerManage.get(widget.image.url);
       _videoPlayerController = _player!.controller;
@@ -53,6 +54,7 @@ class _MyPhotoViewState extends State<MyPhotoView> {
   }
 
   _initVideoPlayerController(MyPlayerController player) async {
+    debugPrint("$player");
     try {
       final controller = await player.initialize();
       if (_player != null) {

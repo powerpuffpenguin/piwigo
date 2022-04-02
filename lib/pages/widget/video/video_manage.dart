@@ -56,6 +56,15 @@ class MyVideoPlayerManage {
       val._count++;
       return val;
     }
+    // from lru
+    final cache = _lru.delete(url);
+    if (cache != null) {
+      cache._count = 1;
+      _keys[url] = cache;
+      return cache;
+    }
+
+    // new
     final controller = MyPlayerController(url: url);
     _keys[url] = controller;
     return controller;
@@ -66,10 +75,21 @@ class MyVideoPlayerManage {
     if (val._count != 0) {
       return;
     }
-    try {
-      val.controller?.pause();
-    } catch (_) {}
+    _keys.remove(val.url);
 
+    // to lru
+    final controller = val.controller;
+    if (controller != null) {
+      if (controller.value.hasError) {
+        // err delete
+        controller.dispose();
+        return;
+      }
+
+      try {
+        controller.pause();
+      } catch (_) {}
+    }
     final player = _lru.put(val.url, val);
     if (player != null) {
       player._dispose();

@@ -15,6 +15,16 @@ class Lru<TK, TV> {
     return ele.value;
   }
 
+  TV? delete(TK key) {
+    final ele = _keys[key];
+    if (ele == null) {
+      return null;
+    }
+    ele.unlink();
+    _keys.remove(key);
+    return ele.value;
+  }
+
   TV? put(TK key, TV val) {
     if (max == 0) {
       return val;
