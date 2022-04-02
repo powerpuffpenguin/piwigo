@@ -41,7 +41,7 @@ class _MyPhotoViewState extends State<MyPhotoView> {
       _add(photo.largeX, derivatives.largeX);
       _add(photo.largeXX, derivatives.largeXX);
       _quality!.add(Tuple2(
-          photo.original,
+          '${photo.original} (${image.width} x ${image.height})',
           Derivative(
             url: widget.image.url,
             width: image.width,
@@ -65,15 +65,15 @@ class _MyPhotoViewState extends State<MyPhotoView> {
     if (_value == null) {
       final qual = quality;
       final size = MediaQuery.of(context).size;
-      for (var i = 0; i < qual.length; i++) {
+      for (var i = 0; i < qual.length - 1; i++) {
         final derivative = qual[i].item2;
-        if (derivative.width >= size.width) {
-          derivative.height >= size.height;
+        if (derivative.width >= size.width ||
+            derivative.height >= size.height) {
           _value = i;
           return i;
         }
       }
-      _value = quality.length - 1;
+      _value = qual.length - 1;
     }
     return _value!;
   }
@@ -91,17 +91,30 @@ class _MyPhotoViewState extends State<MyPhotoView> {
       child: Stack(
         children: [
           PhotoView(
+            heroAttributes:
+                PhotoViewHeroAttributes(tag: "imageView_${widget.image.id}"),
             imageProvider: NetworkImage(qual[value].item2.url),
           ),
+          _buildFullscreenControllerBackground(context),
           _buildFullscreenController(context, qual, value),
         ],
       ),
     );
   }
 
+  Widget _buildFullscreenControllerBackground(BuildContext context) {
+    if (widget.swipe || !_showController) {
+      return Container();
+    }
+    return Container(
+      height: 50,
+      color: const Color.fromARGB(200, 0, 0, 0),
+    );
+  }
+
   Widget _buildFullscreenController(
       BuildContext context, _PhotoQuality quality, int value) {
-    if (widget.swipe || _showController) {
+    if (widget.swipe || !_showController) {
       return Container();
     }
     return Container(

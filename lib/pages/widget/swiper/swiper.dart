@@ -159,6 +159,11 @@ class _SwiperState extends State<Swiper> {
 
   _onUpdate(double width, double height, Offset delta) {
     if (_state == _State.normal) {
+      final moveBy = direction == Axis.horizontal ? delta.dx : delta.dy;
+      const short = 10.0;
+      if (moveBy > -short && moveBy < short) {
+        return;
+      }
       setState(() {
         _state = _State.swipe;
       });

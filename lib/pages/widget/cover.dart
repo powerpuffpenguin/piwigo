@@ -99,10 +99,10 @@ class MyCover extends StatelessWidget {
     } else {
       width = max;
     }
-    return width;
+    return width.toInt().toDouble();
   }
 
-  static double calculateHeight(double width) => width * 9 / 16;
+  static double calculateHeight(double width) => (width * 9 ~/ 16).toDouble();
   static MyWrap calculateWrap(
     Size size,
     double spacing,

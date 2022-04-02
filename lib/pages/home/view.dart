@@ -6,13 +6,10 @@ import 'package:piwigo/pages/home/fullscreen.dart';
 import 'package:piwigo/pages/widget/cover.dart';
 import 'package:piwigo/pages/widget/fullscreen/fullscreen.dart';
 import 'package:piwigo/pages/widget/image.dart';
-import 'package:piwigo/pages/widget/image_full.dart';
 import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/pages/widget/swiper/swiper.dart';
-import 'package:piwigo/pages/widget/video_full.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
-import 'package:piwigo/utils/path.dart';
 import 'package:piwigo/utils/wrap.dart';
 import 'package:ppg_ui/ppg_ui.dart';
 
@@ -56,28 +53,7 @@ class _MyViewPageState extends UIState<MyViewPage> {
   FullscreenState<PageImage> get fullscreenState => _fullscreenState ??=
       FullscreenState<PageImage>(source: _source.list, onChanged: _onChanged);
   void _onChanged(
-      BuildContext context, FullscreenState<PageImage> fullscreenState) {
-    final image = fullscreenState.source[fullscreenState.offset];
-    if (isVideoFile(image.file)) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => MyVideoFull(
-            fullscreenState: fullscreenState,
-            image: image,
-          ),
-        ),
-      );
-    } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => MyImageFull(
-            fullscreenState: fullscreenState,
-            image: image,
-          ),
-        ),
-      );
-    }
-  }
+      BuildContext context, FullscreenState<PageImage> fullscreenState) {}
 
   bool _completed = false;
   PageInfo? _pageinfo;

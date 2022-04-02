@@ -34,11 +34,14 @@ class MyImage extends StatelessWidget {
     }
     return GestureDetector(
       onTap: onFullscreen,
-      child: Image.network(
-        image.derivatives.smallXX.url,
-        width: width,
-        height: height,
-        fit: BoxFit.cover,
+      child: Hero(
+        tag: "imageView_${image.id}",
+        child: Image.network(
+          image.derivatives.smallXX.url,
+          width: width,
+          height: height,
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }
@@ -47,15 +50,25 @@ class MyImage extends StatelessWidget {
   static double calculateWidth(
     double w, {
     double min = 100,
-    double max = 115,
+    double max = 116,
     double fit = 220,
     int count = 3,
   }) {
     assert(count > 0);
-    assert(min > 0);
+    assert(min > 1);
     assert(max >= min);
     assert(fit >= max);
+    var v = _calculateWidth(w, min: min, max: max, fit: fit, count: count);
+    return v.toInt().toDouble();
+  }
 
+  static double _calculateWidth(
+    double w, {
+    double min = 100,
+    double max = 116,
+    double fit = 220,
+    int count = 3,
+  }) {
     if (w <= max) {
       return w;
     }
@@ -73,7 +86,8 @@ class MyImage extends StatelessWidget {
     return fit;
   }
 
-  static double calculateHeight(double width) => width * 9 / 16;
+  static double calculateHeight(double width) => (width * 9 ~/ 16).toDouble();
+
   static MyWrap calculateWrap(
     Size size,
     double spacing,
