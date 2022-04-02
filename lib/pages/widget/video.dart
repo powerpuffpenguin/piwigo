@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:piwigo/pages/widget/video/video_manage.dart';
+import 'package:piwigo/pages/widget/spin.dart';
+import 'package:piwigo/pages/widget/video/player_manage.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/utils/path.dart';
 import 'package:ppg_ui/state/state.dart';
@@ -27,74 +28,39 @@ class _MyVideoState extends UIState<MyVideo> {
   PageImage get image => widget.image;
   double get width => widget.width;
   double get height => widget.height;
-  MyPlayerController? _player;
-  VideoPlayerController? _videoPlayerController;
-  bool _playing = false;
-  String _text = '0:0';
+  Player? _player;
+  bool _playButton = true;
   String getDuration(Duration duration) {
     return '${duration.inMinutes}:${duration.inSeconds.remainder(60).toString().padLeft(2, '0')}';
   }
 
-  _load() {
+  _initPlayer() async {
     if (_player != null) {
       return;
     }
-    setState(() {
-      _player = MyVideoPlayerManage.get(image.url);
-      _initVideoPlayerController(_player!);
-    });
-  }
-
-  _initVideoPlayerController(MyPlayerController player) async {
     try {
-      final controller = await player.initialize();
-      checkAlive();
-      await controller.play();
-      checkAlive();
-      if (_player != null) {
+      if (_playButton) {
         setState(() {
-          _videoPlayerController = controller;
-
-          _playing = controller.value.isPlaying;
-          controller.addListener(_videoListener);
+          _playButton = false;
         });
       }
-    } catch (_) {}
-  }
-
-  @override
-  void dispose() {
-    final player = _player;
-    if (player != null) {
-      _player = null;
-      _videoPlayerController?.removeListener(_videoListener);
-      MyVideoPlayerManage.put(player);
-    }
-    super.dispose();
-  }
-
-  void _videoListener() {
-    if (_videoPlayerController == null) {
-      return;
-    }
-    final controller = _videoPlayerController!;
-    if (controller.value.isPlaying != _playing) {
+      final player = await PlayerManage.instance.get(widget.image.url);
+      checkAlive();
       setState(() {
-        _playing = controller.value.isPlaying;
+        _player = player;
       });
-    }
-    final text = getDuration(controller.value.position);
-    if (text != _text) {
-      setState(() {
-        _text = text;
-      });
+      await player.initialize();
+      checkAlive();
+      setState(() {});
+    } catch (e) {
+      aliveSetState(() {});
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_videoPlayerController != null) {
-      final controller = _videoPlayerController!;
+    if (_player?.controller.value.isInitialized ?? false) {
+      final controller = _player!.controller;
       return GestureDetector(
         onDoubleTap: widget.onFullscreen,
         onTap: () {
@@ -104,7 +70,7 @@ class _MyVideoState extends UIState<MyVideo> {
             controller.play();
           }
         },
-        child: _buildVideo(context, _videoPlayerController!),
+        child: _buildVideo(context, controller),
       );
     }
     return GestureDetector(
@@ -140,7 +106,7 @@ class _MyVideoState extends UIState<MyVideo> {
           width: widget.width,
           height: widget.height,
           child: Text(
-            _playing ? '$_text / $text' : text,
+            text,
             style: Theme.of(context)
                 .textTheme
                 .bodyText1
@@ -167,27 +133,47 @@ class _MyVideoState extends UIState<MyVideo> {
           alignment: Alignment.center,
           width: width,
           height: height,
-          child: _player != null
-              ? const SizedBox(
-                  height: 32,
-                  child: FittedBox(
-                    child: CupertinoActivityIndicator(),
-                  ),
-                )
-              : IconButton(
-                  icon: const Icon(Icons.video_collection_rounded),
-                  onPressed: _player != null
-                      ? null
-                      : () {
-                          if (isSupportedVideo()) {
-                            _load();
-                          } else {
-                            launch(widget.image.url);
-                          }
-                        },
-                ),
+          child: _buildVideoFlag(context),
         ),
       ],
+    );
+  }
+
+  Widget _buildVideoFlag(BuildContext context) {
+    final player = _player;
+    if (player != null) {
+      if (player.controller.value.hasError) {
+        return Center(
+          child: IntrinsicHeight(
+            child: Container(
+              color: const Color.fromARGB(200, 0, 0, 0),
+              child: buildError(
+                context,
+                player.controller.value.errorDescription,
+              ),
+            ),
+          ),
+        );
+      }
+      return const Center(
+        child: SizedBox(
+          height: 32,
+          child: FittedBox(
+            child: CupertinoActivityIndicator(),
+          ),
+        ),
+      );
+    }
+    return Center(
+      child: IconButton(
+        iconSize: 32,
+        onPressed: isSupportedVideo()
+            ? (_playButton ? _initPlayer : null)
+            : () {
+                launch(widget.image.url);
+              },
+        icon: const Icon(Icons.video_collection_rounded),
+      ),
     );
   }
 }

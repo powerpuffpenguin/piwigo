@@ -4,6 +4,8 @@ class Lru<TK, TV> {
   final int max;
   final _list = LinkedList<_Element<TK, TV>>();
   final _keys = <TK, _Element<TK, TV>>{};
+  bool get isFull => _list.length == max;
+  int get length => _list.length;
   Lru(this.max) : assert(max > -1);
   TV? get(TK key) {
     final ele = _keys[key];
@@ -47,13 +49,16 @@ class Lru<TK, TV> {
     _list.add(add);
     _keys[key] = add;
 
-    if (_list.length == max) {
-      return _popFirst();
+    if (_list.length > max) {
+      return pop();
     }
     return null;
   }
 
-  TV _popFirst() {
+  TV? pop() {
+    if (_list.isEmpty) {
+      return null;
+    }
     final first = _list.first;
     final val = first.value;
     _keys.remove(first.key);

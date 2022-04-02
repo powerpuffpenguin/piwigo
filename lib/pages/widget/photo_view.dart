@@ -4,7 +4,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/pages/widget/swiper/swiper.dart';
-import 'package:piwigo/pages/widget/video/video_manage.dart';
+import 'package:piwigo/pages/widget/video/player_manage.dart';
 import 'package:piwigo/pages/widget/video_controller.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/utils/path.dart';
@@ -39,43 +39,45 @@ typedef _PhotoQuality = List<Tuple2<String, Derivative>>;
 
 class _MyPhotoViewState extends UIState<MyPhotoView> {
   bool _showController = false;
-  MyPlayerController? _player;
-  VideoPlayerController? _videoPlayerController;
+  Player? _player;
   bool _play = false;
+  bool _playButton = false;
   @override
   void initState() {
     super.initState();
     _showController = widget.initShowController;
 
     if (widget.isVideo && isSupportedVideo()) {
-      _player = MyVideoPlayerManage.get(widget.image.url);
-      _videoPlayerController = _player!.controller;
-      if (_videoPlayerController == null) {
-        _initVideoPlayerController(_player!);
-      }
+      addSubscription(PlayerManage.instance.stream.listen((event) {
+        if (event == _player) {
+          setState(() {
+            _player = null;
+            _playButton = true;
+          });
+        }
+      }));
+      _initPlayer();
     }
   }
 
-  dynamic _initVideoError;
-  _initVideoPlayerController(MyPlayerController player) async {
+  _initPlayer() async {
     try {
-      final controller = await player.initialize();
-      if (_player != null) {
-        aliveSetState(() => _videoPlayerController = controller);
+      if (_playButton) {
+        setState(() {
+          _playButton = false;
+        });
       }
+      final player = await PlayerManage.instance.get(widget.image.url);
+      checkAlive();
+      setState(() {
+        _player = player;
+      });
+      await player.initialize();
+      checkAlive();
+      setState(() {});
     } catch (e) {
-      aliveSetState(() => _initVideoError = e);
+      aliveSetState(() {});
     }
-  }
-
-  @override
-  void dispose() {
-    final player = _player;
-    if (player != null) {
-      _player = null;
-      MyVideoPlayerManage.put(player);
-    }
-    super.dispose();
   }
 
   final _keys = <int, int>{};
@@ -140,8 +142,8 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
   Widget build(BuildContext context) {
     final value = _getValue(context);
     final qual = quality;
-    if (widget.isVideo && _videoPlayerController != null) {
-      return _buildVideo(context, qual, value, _videoPlayerController!);
+    if (widget.isVideo && (_player?.controller.value.isInitialized ?? false)) {
+      return _buildVideo(context, qual, value, _player!.controller);
     }
     return GestureDetector(
       onTap: () {
@@ -167,17 +169,21 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
   }
 
   Widget _buildVideoFlag(BuildContext context) {
-    if (_initVideoError != null) {
-      return Center(
-        child: IntrinsicHeight(
-          child: Container(
-            color: const Color.fromARGB(200, 0, 0, 0),
-            child: buildError(context, _initVideoError),
+    final player = _player;
+    if (player != null) {
+      if (player.controller.value.hasError) {
+        return Center(
+          child: IntrinsicHeight(
+            child: Container(
+              color: const Color.fromARGB(200, 0, 0, 0),
+              child: buildError(
+                context,
+                player.controller.value.errorDescription,
+              ),
+            ),
           ),
-        ),
-      );
-    }
-    if (_player != null) {
+        );
+      }
       return const Center(
         child: SizedBox(
           height: 64,
@@ -191,7 +197,7 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
       child: IconButton(
         iconSize: 64,
         onPressed: isSupportedVideo()
-            ? null
+            ? (_playButton ? _initPlayer : null)
             : () {
                 launch(widget.image.url);
               },
