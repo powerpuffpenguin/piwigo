@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:piwigo/pages/dev/player.dart';
 import 'package:piwigo/pages/dev/rpc.dart';
 import 'package:piwigo/pages/dev/swiper.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
@@ -22,6 +23,16 @@ class _MyDevPageState extends State<MyDevPage> {
       ),
       body: ListView(
         children: [
+          TextButton(
+            child: const Text('Player'),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const MyTestPlayerPage(),
+                ),
+              );
+            },
+          ),
           TextButton(
             child: const Text('RPC'),
             onPressed: () {
