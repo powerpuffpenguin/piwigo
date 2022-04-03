@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:piwigo/utils/lru.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:video_player/video_player.dart';
@@ -40,6 +41,20 @@ class PlayerManage {
   final _subject = PublishSubject<Player>();
   Stream<Player> get stream => _subject;
   Future<Player> get(String url) async {
+    // 清理出錯資源
+    final list = _lru.toList();
+    for (var item in list) {
+      final player = item.value;
+      final controller = player.controller;
+      if (controller.value.hasError) {
+        if (_lru.exists(item.key) == player) {
+          _lru.delete(item.key);
+        }
+        await _remove(player);
+      }
+    }
+
+    // 查找緩存
     final cache = _lru.get(url);
     if (cache != null) {
       return cache;
@@ -61,5 +76,25 @@ class PlayerManage {
   Future<void> _remove(Player player) async {
     _subject.add(player);
     await player._dispose();
+  }
+
+  bool exists(Player player) => _lru.exists(player.url) == player;
+  Future<void> play(Player player) async {
+    final list = _lru.toList();
+    for (var item in list) {
+      if (item.value != player) {
+        final controller = item.value.controller;
+        if (controller.value.isPlaying && exists(item.value)) {
+          try {
+            await controller.pause();
+          } catch (e) {
+            debugPrint('pause error: $e');
+          }
+        }
+      }
+    }
+    if (exists(player)) {
+      await player.controller.play();
+    }
   }
 }

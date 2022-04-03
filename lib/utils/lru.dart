@@ -3,10 +3,13 @@ import 'dart:collection';
 class Lru<TK, TV> {
   final int max;
   final _list = LinkedList<_Element<TK, TV>>();
+  List<_Element<TK, TV>> toList() => _list.toList();
+  TV? exists(TK key) => _keys[key]?.value;
   final _keys = <TK, _Element<TK, TV>>{};
   bool get isFull => _list.length == max;
   int get length => _list.length;
   Lru(this.max) : assert(max > -1);
+
   TV? get(TK key) {
     final ele = _keys[key];
     if (ele == null) {

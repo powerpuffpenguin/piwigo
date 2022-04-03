@@ -143,7 +143,7 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
     final value = _getValue(context);
     final qual = quality;
     if (widget.isVideo && (_player?.controller.value.isInitialized ?? false)) {
-      return _buildVideo(context, qual, value, _player!.controller);
+      return _buildVideo(context, qual, value, _player!);
     }
     return GestureDetector(
       onTap: () {
@@ -210,12 +210,14 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
     BuildContext context,
     _PhotoQuality quality,
     int value,
-    VideoPlayerController controller,
+    Player player,
   ) {
     if (!_play) {
       _play = true;
-      controller.play();
+      // controller.play();
+      PlayerManage.instance.play(player);
     }
+    final controller = player.controller;
     return GestureDetector(
       onTap: () {
         setState(() {

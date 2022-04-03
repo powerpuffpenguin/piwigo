@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:piwigo/rpc/webapi/client.dart';
 import 'package:video_player/video_player.dart';
 
 class MyTestPlayerPage extends StatefulWidget {

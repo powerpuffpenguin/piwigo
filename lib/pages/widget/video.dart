@@ -30,8 +30,21 @@ class _MyVideoState extends UIState<MyVideo> {
   double get height => widget.height;
   Player? _player;
   bool _playButton = true;
-  String getDuration(Duration duration) {
-    return '${duration.inMinutes}:${duration.inSeconds.remainder(60).toString().padLeft(2, '0')}';
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (isSupportedVideo()) {
+      addSubscription(PlayerManage.instance.stream.listen((event) {
+        if (event == _player) {
+          setState(() {
+            _player = null;
+            _playButton = true;
+          });
+        }
+      }));
+    }
   }
 
   _initPlayer() async {
@@ -51,6 +64,7 @@ class _MyVideoState extends UIState<MyVideo> {
       });
       await player.initialize();
       checkAlive();
+      await PlayerManage.instance.play(player);
       setState(() {});
     } catch (e) {
       aliveSetState(() {});
@@ -59,15 +73,16 @@ class _MyVideoState extends UIState<MyVideo> {
 
   @override
   Widget build(BuildContext context) {
-    if (_player?.controller.value.isInitialized ?? false) {
-      final controller = _player!.controller;
+    final player = _player;
+    if (player?.controller.value.isInitialized ?? false) {
+      final controller = player!.controller;
       return GestureDetector(
         onDoubleTap: widget.onFullscreen,
         onTap: () {
           if (controller.value.isPlaying) {
             controller.pause();
           } else {
-            controller.play();
+            PlayerManage.instance.play(player);
           }
         },
         child: _buildVideo(context, controller),
@@ -83,9 +98,6 @@ class _MyVideoState extends UIState<MyVideo> {
     BuildContext context,
     VideoPlayerController controller,
   ) {
-    final duration = controller.value.duration;
-    final text = getDuration(duration);
-
     return Stack(
       children: [
         Hero(
@@ -101,18 +113,13 @@ class _MyVideoState extends UIState<MyVideo> {
             ),
           ),
         ),
-        Container(
-          padding: const EdgeInsets.only(top: 4, left: 4),
+        SizedBox(
           width: widget.width,
           height: widget.height,
-          child: Text(
-            text,
-            style: Theme.of(context)
-                .textTheme
-                .bodyText1
-                ?.copyWith(color: Colors.white),
+          child: MyVideoController(
+            controller: controller,
           ),
-        )
+        ),
       ],
     );
   }
@@ -174,6 +181,90 @@ class _MyVideoState extends UIState<MyVideo> {
               },
         icon: const Icon(Icons.video_collection_rounded),
       ),
+    );
+  }
+}
+
+class MyVideoController extends StatefulWidget {
+  const MyVideoController({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
+  final VideoPlayerController controller;
+
+  @override
+  _MyVideoControllerState createState() => _MyVideoControllerState();
+}
+
+class _MyVideoControllerState extends UIState<MyVideoController> {
+  VideoPlayerController get controller => widget.controller;
+  bool _playing = false;
+  String _text = '0:0';
+  @override
+  void initState() {
+    super.initState();
+    if (controller.value.isInitialized) {
+      _text = getDuration(controller.value.position);
+    }
+    _playing = controller.value.isPlaying;
+    controller.addListener(_videoListener);
+  }
+
+  @override
+  void dispose() {
+    controller.removeListener(_videoListener);
+    super.dispose();
+  }
+
+  String getDuration(Duration duration) {
+    return '${duration.inMinutes}:${duration.inSeconds.remainder(60).toString().padLeft(2, '0')}';
+  }
+
+  void _videoListener() {
+    if (!controller.value.isInitialized) {
+      return;
+    }
+    if (controller.value.isPlaying != _playing) {
+      setState(() {
+        _playing = controller.value.isPlaying;
+      });
+    }
+    final text = getDuration(controller.value.position);
+    if (text != _text) {
+      setState(() {
+        _text = text;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final value = controller.value;
+    if (!value.isInitialized) {
+      return Container();
+    }
+    return Stack(
+      children: [
+        Container(
+          padding: const EdgeInsets.only(left: 8, right: 8),
+          child: Text(
+            '$_text / ${getDuration(value.duration)}',
+            style: Theme.of(context)
+                .textTheme
+                .bodyText1
+                ?.copyWith(color: Colors.white),
+          ),
+        ),
+        _playing
+            ? Container()
+            : const Center(
+                child: IconButton(
+                  iconSize: 32,
+                  onPressed: null,
+                  icon: Icon(Icons.video_collection_rounded),
+                ),
+              ),
+      ],
     );
   }
 }
