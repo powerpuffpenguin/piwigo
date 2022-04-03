@@ -491,27 +491,33 @@ class _MyShareState extends UIState<_MyShare> {
   bool _launcher = !isSupportedShare();
   @override
   Widget build(BuildContext context) {
-    final children = <Widget>[
-      isSupportedShare()
-          ? SwitchListTile(
-              title: Text(_launcher
-                  ? S.of(context).app.openInBrowser
-                  : S.of(context).app.shareTo),
-              value: _launcher,
-              onChanged: disabled
-                  ? null
-                  : (v) {
-                      setState(() {
-                        _launcher = v;
-                      });
-                    })
-          : Container(),
-      isVideoFile(widget.image.file) ? Container() : Container(),
-      _buildItem(
-        widget.quality[widget.value].item1,
-        widget.quality[widget.value].item2.url,
-      )
-    ];
+    final children = <Widget>[];
+    if (isSupportedShare()) {
+      children.add(
+        SwitchListTile(
+            title: Text(_launcher
+                ? S.of(context).app.openInBrowser
+                : S.of(context).app.shareTo),
+            value: _launcher,
+            onChanged: disabled
+                ? null
+                : (v) {
+                    setState(() {
+                      _launcher = v;
+                    });
+                  }),
+      );
+    }
+    if (widget.video) {
+      children.add(_buildItem(
+        '${S.of(context).photo.video} (${widget.image.width} x ${widget.image.height})',
+        widget.image.url,
+      ));
+    }
+    children.add(_buildItem(
+      widget.quality[widget.value].item1,
+      widget.quality[widget.value].item2.url,
+    ));
     for (var i = 0; i < widget.quality.length; i++) {
       final item = widget.quality[i];
       if (i == widget.value) {

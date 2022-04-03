@@ -47,4 +47,8 @@ class Photo {
         'Photo.original',
         desc: '原始',
       );
+  String get video => Intl.message(
+        'Photo.video',
+        desc: '視頻',
+      );
 }

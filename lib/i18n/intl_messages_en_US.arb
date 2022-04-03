@@ -1,15 +1,280 @@
 {
   "@@last_modified": "2021-10-21T16:50:50.762691",
   "@@locale": "en_US",
+  "Reviews.noThanks": "No thanks",
+  "@Reviews.noThanks": {
+    "description": "不用了",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Settings.theme": "Theme",
+  "@Settings.theme": {
+    "description": "主題設定",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Account.add": "Add Account",
+  "@Account.add": {
+    "description": "添加帳戶 按鈕/提示文本/標題",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Reviews.doYouLike": "How do you like our product so far?",
+  "@Reviews.doYouLike": {
+    "description": "到目前為止，您如何看待我們的產品？",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Account.password": "password",
+  "@Account.password": {
+    "description": "密碼",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.share": "Share",
+  "@App.share": {
+    "description": "分享 按鈕/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.next": "Next",
+  "@Photo.next": {
+    "description": "下一個",
+    "type": "text",
+    "placeholders": {}
+  },
+  "countPhotoInSub": ", {count} photos in sub-albums",
+  "@countPhotoInSub": {
+    "description": "，4張照片在子相冊中",
+    "type": "text",
+    "placeholders": {
+      "count": {
+        "example": 4
+      }
+    }
+  },
+  "Settings.title": "System Setting",
+  "@Settings.title": {
+    "description": "頁面標題 : 系統設定",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.smallXX": "Small XX",
+  "@Photo.smallXX": {
+    "description": "極小",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.reivew": "reivew",
+  "@App.reivew": {
+    "description": "提供意見 按鈕/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.saveSucess": "data saved",
+  "@App.saveSucess": {
+    "description": "提示信息 : 數據已保存",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Reviews.like": "like",
+  "@Reviews.like": {
+    "description": "喜歡",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.smallX": "Small X",
+  "@Photo.smallX": {
+    "description": "超小",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.sucess": "sucess",
+  "@App.sucess": {
+    "description": "成功 標題/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Error.noChanged": "nothing data changed",
+  "@Error.noChanged": {
+    "description": "錯誤信息 : 沒有數據改變",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.home": "home",
+  "@App.home": {
+    "description": "首頁 按鈕/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Home.exitContext": "Are you sure you want to shut down the system?",
+  "@Home.exitContext": {
+    "description": "確定要關閉系統嗎？",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.original": "Original",
+  "@Photo.original": {
+    "description": "原始",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Home.exitTitle": "shut down the system",
+  "@Home.exitTitle": {
+    "description": "導航按鈕 : 關閉系統",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.small": "Small",
+  "@Photo.small": {
+    "description": "小",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Error.title": "Error",
+  "@Error.title": {
+    "description": "頁面標題 錯誤信息顯示",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.openInBrowser": "open in browser",
+  "@App.openInBrowser": {
+    "description": "在瀏覽器中開啓 按鈕/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.issuesHelp": "Ask for help",
+  "@App.issuesHelp": {
+    "description": "尋求幫助 按鈕/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Home.name": "name",
+  "@Home.name": {
+    "description": "搜索名称",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Reviews.fantastical": "Fantastical! Would you like to give us rating on the store?",
+  "@Reviews.fantastical": {
+    "description": "太棒了！ 您想在商店給我們評級嗎？",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App Name": "Piwigo",
+  "@App Name": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "Home.nameNotSupportEmpty": "Cartoon name cannot be empty",
+  "@Home.nameNotSupportEmpty": {
+    "description": "搜索名称不能为空",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.settings": "settings",
+  "@App.settings": {
+    "description": "設定 按鈕/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.largeXX": "Large XX",
+  "@Photo.largeXX": {
+    "description": "巨大",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.large": "Large",
+  "@Photo.large": {
+    "description": "大",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.medium": "Medium",
+  "@Photo.medium": {
+    "description": "中",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.save": "save",
+  "@App.save": {
+    "description": "保存 按鈕/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Reviews.Sure": "Sure!",
+  "@Reviews.Sure": {
+    "description": "當然！",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.before": "Before",
+  "@Photo.before": {
+    "description": "上一個",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Account.manage": "Manage Accounts",
+  "@Account.manage": {
+    "description": "管理帳戶 Manage Accounts",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Settings.systemDefault": "system default",
+  "@Settings.systemDefault": {
+    "description": "系統默認",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Reviews.Dismiss": "Dismiss",
+  "@Reviews.Dismiss": {
+    "description": "不再詢問",
+    "type": "text",
+    "placeholders": {}
+  },
+  "idae": "{name} is an idae",
+  "@idae": {
+    "description": "example for message input args",
+    "type": "text",
+    "placeholders": {
+      "name": {
+        "example": "cerberus"
+      }
+    }
+  },
+  "Photo.largeX": "Large x",
+  "@Photo.largeX": {
+    "description": "超大",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Account.delete": "Delete Account",
+  "@Account.delete": {
+    "description": "刪除帳戶 按鈕/提示文本/標題",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.shareTo": "Shared to",
+  "@App.shareTo": {
+    "description": "分享到 按鈕/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
   "Account.name": "username",
   "@Account.name": {
     "description": "用戶名",
     "type": "text",
     "placeholders": {}
   },
-  "Reviews.noThanks": "No thanks",
-  "@Reviews.noThanks": {
-    "description": "不用了",
+  "Photo.resize": "Resize",
+  "@Photo.resize": {
+    "description": "圖片大小",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.loading": "Loading...",
+  "@App.loading": {
+    "description": "正在加載中... 提示文本",
     "type": "text",
     "placeholders": {}
   },
@@ -29,180 +294,9 @@
       }
     }
   },
-  "Reviews.fantastical": "Fantastical! Would you like to give us rating on the store?",
-  "@Reviews.fantastical": {
-    "description": "太棒了！ 您想在商店給我們評級嗎？",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Settings.theme": "Theme",
-  "@Settings.theme": {
-    "description": "主題設定",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Reviews.dislike": "dislike",
-  "@Reviews.dislike": {
-    "description": "不喜歡",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Home.exitContext": "Are you sure you want to shut down the system?",
-  "@Home.exitContext": {
-    "description": "確定要關閉系統嗎？",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Photo.smallXX": "Small XX",
-  "@Photo.smallXX": {
-    "description": "極小",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Error.title": "Error",
-  "@Error.title": {
-    "description": "頁面標題 錯誤信息顯示",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.home": "home",
-  "@App.home": {
-    "description": "首頁 按鈕/提示文本",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Photo.next": "Next",
-  "@Photo.next": {
-    "description": "下一個",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.refresh": "refresh",
-  "@App.refresh": {
-    "description": "刷新 按鈕/提示文本",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Photo.resize": "Resize",
-  "@Photo.resize": {
-    "description": "圖片大小",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.save": "save",
-  "@App.save": {
-    "description": "保存 按鈕/提示文本",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Photo.original": "Original",
-  "@Photo.original": {
-    "description": "原始",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Home.search": "search",
-  "@Home.search": {
-    "description": "搜索",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Reviews.MayBeNextTime": "Maybe next time",
-  "@Reviews.MayBeNextTime": {
-    "description": "下次再評價",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Reviews.like": "like",
-  "@Reviews.like": {
-    "description": "喜歡",
-    "type": "text",
-    "placeholders": {}
-  },
   "App.help": "Help",
   "@App.help": {
     "description": "幫助 按鈕/提示文本",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App Name": "Piwigo",
-  "@App Name": {
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.loading": "Loading...",
-  "@App.loading": {
-    "description": "正在加載中... 提示文本",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Account.add": "Add Account",
-  "@Account.add": {
-    "description": "添加帳戶 按鈕/提示文本/標題",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Photo.largeXX": "Large XX",
-  "@Photo.largeXX": {
-    "description": "巨大",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Reviews.Sure": "Sure!",
-  "@Reviews.Sure": {
-    "description": "當然！",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Settings.systemDefault": "system default",
-  "@Settings.systemDefault": {
-    "description": "系統默認",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Reviews.Dismiss": "Dismiss",
-  "@Reviews.Dismiss": {
-    "description": "不再詢問",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.submit": "submit",
-  "@App.submit": {
-    "description": "提交 按鈕/提示文本",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Reviews.doYouLike": "How do you like our product so far?",
-  "@Reviews.doYouLike": {
-    "description": "到目前為止，您如何看待我們的產品？",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Photo.before": "Before",
-  "@Photo.before": {
-    "description": "上一個",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.issuesHelp": "Ask for help",
-  "@App.issuesHelp": {
-    "description": "尋求幫助 按鈕/提示文本",
-    "type": "text",
-    "placeholders": {}
-  },
-  "idae": "{name} is an idae",
-  "@idae": {
-    "description": "example for message input args",
-    "type": "text",
-    "placeholders": {
-      "name": {
-        "example": "cerberus"
-      }
-    }
-  },
-  "Account.edit": "Edit Account",
-  "@Account.edit": {
-    "description": "編輯帳戶 按鈕/提示文本/標題",
     "type": "text",
     "placeholders": {}
   },
@@ -212,115 +306,15 @@
     "type": "text",
     "placeholders": {}
   },
-  "Home.name": "name",
-  "@Home.name": {
-    "description": "搜索名称",
+  "App.refresh": "refresh",
+  "@App.refresh": {
+    "description": "刷新 按鈕/提示文本",
     "type": "text",
     "placeholders": {}
   },
-  "Photo.medium": "Medium",
-  "@Photo.medium": {
-    "description": "中",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Account.delete": "Delete Account",
-  "@Account.delete": {
-    "description": "刪除帳戶 按鈕/提示文本/標題",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.settings": "settings",
-  "@App.settings": {
-    "description": "設定 按鈕/提示文本",
-    "type": "text",
-    "placeholders": {}
-  },
-  "countPhotoInSub": ", {count} photos in sub-albums",
-  "@countPhotoInSub": {
-    "description": "，4張照片在子相冊中",
-    "type": "text",
-    "placeholders": {
-      "count": {
-        "example": 4
-      }
-    }
-  },
-  "Account.password": "password",
-  "@Account.password": {
-    "description": "密碼",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.sucess": "sucess",
-  "@App.sucess": {
-    "description": "成功 標題/提示文本",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Home.exitTitle": "shut down the system",
-  "@Home.exitTitle": {
-    "description": "導航按鈕 : 關閉系統",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Photo.largeX": "Large x",
-  "@Photo.largeX": {
-    "description": "超大",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Home.nameNotSupportEmpty": "Cartoon name cannot be empty",
-  "@Home.nameNotSupportEmpty": {
-    "description": "搜索名称不能为空",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Photo.small": "Small",
-  "@Photo.small": {
-    "description": "小",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.saveSucess": "data saved",
-  "@App.saveSucess": {
-    "description": "提示信息 : 數據已保存",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Photo.large": "Large",
-  "@Photo.large": {
-    "description": "大",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Error.noChanged": "nothing data changed",
-  "@Error.noChanged": {
-    "description": "錯誤信息 : 沒有數據改變",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Photo.smallX": "Small X",
-  "@Photo.smallX": {
-    "description": "超小",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Settings.title": "System Setting",
-  "@Settings.title": {
-    "description": "頁面標題 : 系統設定",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Account.manage": "Manage Accounts",
-  "@Account.manage": {
-    "description": "管理帳戶 Manage Accounts",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.reivew": "reivew",
-  "@App.reivew": {
-    "description": "提供意見 按鈕/提示文本",
+  "Account.edit": "Edit Account",
+  "@Account.edit": {
+    "description": "編輯帳戶 按鈕/提示文本/標題",
     "type": "text",
     "placeholders": {}
   },
@@ -330,21 +324,33 @@
     "type": "text",
     "placeholders": {}
   },
-  "App.openInBrowser": "open in browser",
-  "@App.openInBrowser": {
-    "description": "在瀏覽器中開啓 按鈕/提示文本",
+  "Reviews.dislike": "dislike",
+  "@Reviews.dislike": {
+    "description": "不喜歡",
     "type": "text",
     "placeholders": {}
   },
-  "App.share": "Share",
-  "@App.share": {
-    "description": "分享 按鈕/提示文本",
+  "Home.search": "search",
+  "@Home.search": {
+    "description": "搜索",
     "type": "text",
     "placeholders": {}
   },
-  "App.shareTo": "Shared to",
-  "@App.shareTo": {
-    "description": "分享到 按鈕/提示文本",
+  "App.submit": "submit",
+  "@App.submit": {
+    "description": "提交 按鈕/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Reviews.MayBeNextTime": "Maybe next time",
+  "@Reviews.MayBeNextTime": {
+    "description": "下次再評價",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.video": "Video",
+  "@Photo.video": {
+    "description": "視頻",
     "type": "text",
     "placeholders": {}
   }
