@@ -28,6 +28,8 @@ class _MyHomePageState extends UIState<MyHomePage> {
   dynamic _error;
   final _source = <Categorie>[];
   final _cancelToken = CancelToken();
+  final _focusNode = FocusNode();
+  final _focusNode1 = FocusNode();
   @override
   void initState() {
     gclient = client;
@@ -46,6 +48,8 @@ class _MyHomePageState extends UIState<MyHomePage> {
 
   @override
   void dispose() {
+    _focusNode.dispose();
+    _focusNode1.dispose();
     _cancelToken.cancel();
     if (client.status != null) {
       client.logout();
@@ -103,21 +107,30 @@ class _MyHomePageState extends UIState<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: MyDrawerView(
-        client: client,
-        disabled: disabled,
+    return RawKeyboardListener(
+      onKey: (evt) {
+        debugPrint('$evt');
+        Future.delayed(const Duration(milliseconds: 100)).then((value) {
+          _focusNode1.requestFocus();
+        });
+      },
+      focusNode: _focusNode,
+      child: Scaffold(
+        drawer: MyDrawerView(
+          client: client,
+          disabled: disabled,
+        ),
+        appBar: AppBar(
+          title: Text(S.of(context).appName),
+        ),
+        body: _error == null
+            ? _buildBody(context)
+            : Text(
+                "$_error",
+                style: TextStyle(color: Theme.of(context).errorColor),
+              ),
+        floatingActionButton: _buildFloatingActionButton(context),
       ),
-      appBar: AppBar(
-        title: Text(S.of(context).appName),
-      ),
-      body: _error == null
-          ? _buildBody(context)
-          : Text(
-              "$_error",
-              style: TextStyle(color: Theme.of(context).errorColor),
-            ),
-      floatingActionButton: _buildFloatingActionButton(context),
     );
   }
 
@@ -172,7 +185,9 @@ class _MyHomePageState extends UIState<MyHomePage> {
             }
             return Container(
               padding: padding,
-              child: GestureDetector(
+              child: MyCover(
+                focusNode: _focusNode1,
+                focusColor: Colors.lightBlue.withOpacity(0.4),
                 onTap: disabled
                     ? null
                     : () {
@@ -185,13 +200,11 @@ class _MyHomePageState extends UIState<MyHomePage> {
                           ),
                         );
                       },
-                child: MyCover(
-                  src: node.cover,
-                  title: node.name,
-                  text: text,
-                  width: wrap.width,
-                  height: wrap.height,
-                ),
+                src: node.cover,
+                title: node.name,
+                text: text,
+                width: wrap.width,
+                height: wrap.height,
               ),
             );
           }).toList(),

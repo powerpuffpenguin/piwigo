@@ -9,74 +9,60 @@ class MyCover extends StatelessWidget {
     this.text = '',
     required this.width,
     required this.height,
+    this.onTap,
+    this.focusNode,
+    this.focusColor,
   }) : super(key: key);
   final String src;
   final String title;
   final String text;
   final double width;
   final double height;
-
+  final VoidCallback? onTap;
+  final FocusNode? focusNode;
+  final Color? focusColor;
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Stack(
-      children: [
-        Container(
-          color: theme.colorScheme.surface,
-          width: width,
-          height: height,
-        ),
-        Image.network(
-          src,
+    return Ink(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        image: DecorationImage(
+          image: NetworkImage(src),
           fit: BoxFit.cover,
-          width: width,
-          height: height,
         ),
-        _buildText(
-          context,
-          theme,
-          Opacity(
-            opacity: 0.75,
+      ),
+      child: InkWell(
+        focusNode: focusNode,
+        focusColor: focusColor,
+        onTap: onTap,
+        child: Container(
+          alignment: Alignment.bottomLeft,
+          child: IntrinsicHeight(
             child: Container(
-              color: theme.colorScheme.surface,
-            ),
-          ),
-        ),
-        _buildText(
-          context,
-          theme,
-          Container(
-            padding: const EdgeInsets.all(8),
-            child: RichText(
-              text: TextSpan(
-                children: <InlineSpan>[
-                  TextSpan(
-                    text: '$title\n',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(color: theme.colorScheme.primary),
-                  ),
-                  TextSpan(
-                    text: text,
-                    style: theme.textTheme.bodyText2,
-                  ),
-                ],
+              color: theme.colorScheme.surface.withOpacity(0.75),
+              width: width,
+              padding: const EdgeInsets.all(8),
+              child: RichText(
+                text: TextSpan(
+                  children: <InlineSpan>[
+                    TextSpan(
+                      text: '$title\n',
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(color: theme.colorScheme.primary),
+                    ),
+                    TextSpan(
+                      text: text,
+                      style: theme.textTheme.bodyText2,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildText(BuildContext context, ThemeData theme, Widget child) {
-    return Container(
-      width: width,
-      height: height,
-      alignment: Alignment.bottomLeft,
-      child: SizedBox(
-        width: width,
-        height: 60,
-        child: child,
       ),
     );
   }

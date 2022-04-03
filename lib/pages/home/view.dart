@@ -240,11 +240,10 @@ class _MyViewPageState extends UIState<MyViewPage> {
             }
             return Container(
               padding: padding,
-              child: GestureDetector(
+              child: MyCover(
                 onTap: disabled
                     ? null
                     : () {
-                        PlayerManage.instance.pause();
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => MyViewPage(
@@ -254,13 +253,11 @@ class _MyViewPageState extends UIState<MyViewPage> {
                           ),
                         );
                       },
-                child: MyCover(
-                  src: node.cover,
-                  title: node.name,
-                  text: text,
-                  width: wrap.width,
-                  height: wrap.height,
-                ),
+                src: node.cover,
+                title: node.name,
+                text: text,
+                width: wrap.width,
+                height: wrap.height,
               ),
             );
           }).toList(),
