@@ -4,6 +4,7 @@ class Lru<TK, TV> {
   final int max;
   final _list = LinkedList<_Element<TK, TV>>();
   List<_Element<TK, TV>> toList() => _list.toList();
+  LinkedList<_Element<TK, TV>> get list => _list;
   TV? exists(TK key) => _keys[key]?.value;
   final _keys = <TK, _Element<TK, TV>>{};
   bool get isFull => _list.length == max;

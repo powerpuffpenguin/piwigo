@@ -47,6 +47,14 @@ class _MyVideoState extends UIState<MyVideo> {
     }
   }
 
+  @override
+  void dispose() {
+    if (_player?.controller.value.isInitialized ?? false) {
+      _player?.controller.pause();
+    }
+    super.dispose();
+  }
+
   _initPlayer() async {
     if (_player != null) {
       return;

@@ -60,6 +60,14 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
     }
   }
 
+  @override
+  void dispose() {
+    if (_player?.controller.value.isInitialized ?? false) {
+      _player?.controller.pause();
+    }
+    super.dispose();
+  }
+
   _initPlayer() async {
     try {
       if (_playButton) {

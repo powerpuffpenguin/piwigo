@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:piwigo/utils/lru.dart';
+import 'package:piwigo/utils/mutex.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:video_player/video_player.dart';
 
@@ -40,16 +41,24 @@ class PlayerManage {
   final _lru = Lru<String, Player>(4);
   final _subject = PublishSubject<Player>();
   Stream<Player> get stream => _subject;
+  final _mutex = Mutex();
   Future<Player> get(String url) async {
+    await _mutex.lock();
+    try {
+      return await _get(url);
+    } finally {
+      _mutex.unlock();
+    }
+  }
+
+  Future<Player> _get(String url) async {
     // 清理出錯資源
     final list = _lru.toList();
     for (var item in list) {
       final player = item.value;
       final controller = player.controller;
       if (controller.value.hasError) {
-        if (_lru.exists(item.key) == player) {
-          _lru.delete(item.key);
-        }
+        _lru.delete(item.key);
         await _remove(player);
       }
     }
@@ -80,11 +89,23 @@ class PlayerManage {
 
   bool exists(Player player) => _lru.exists(player.url) == player;
   Future<void> play(Player player) async {
-    final list = _lru.toList();
+    await _mutex.lock();
+    try {
+      await _play(player);
+    } finally {
+      _mutex.unlock();
+    }
+  }
+
+  Future<void> _play(Player player) async {
+    if (!exists(player)) {
+      return;
+    }
+    final list = _lru.list;
     for (var item in list) {
       if (item.value != player) {
         final controller = item.value.controller;
-        if (controller.value.isPlaying && exists(item.value)) {
+        if (controller.value.isPlaying) {
           try {
             await controller.pause();
           } catch (e) {
@@ -93,8 +114,6 @@ class PlayerManage {
         }
       }
     }
-    if (exists(player)) {
-      await player.controller.play();
-    }
+    await player.controller.play();
   }
 }
