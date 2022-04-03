@@ -7,6 +7,7 @@ import 'package:piwigo/pages/widget/cover.dart';
 import 'package:piwigo/pages/widget/image.dart';
 import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/pages/widget/swiper/swiper.dart';
+import 'package:piwigo/pages/widget/video/player_manage.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
 import 'package:piwigo/utils/wrap.dart';
@@ -243,6 +244,7 @@ class _MyViewPageState extends UIState<MyViewPage> {
                 onTap: disabled
                     ? null
                     : () {
+                        PlayerManage.instance.pause();
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => MyViewPage(

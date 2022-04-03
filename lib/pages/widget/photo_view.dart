@@ -1,5 +1,7 @@
+import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_share_me/flutter_share_me.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/widget/spin.dart';
@@ -40,7 +42,6 @@ typedef _PhotoQuality = List<Tuple2<String, Derivative>>;
 class _MyPhotoViewState extends UIState<MyPhotoView> {
   bool _showController = false;
   Player? _player;
-  bool _play = false;
   bool _playButton = false;
   @override
   void initState() {
@@ -56,14 +57,22 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
           });
         }
       }));
-      _initPlayer();
+      final player = PlayerManage.instance.getInitialized(widget.image.url);
+      if (player != null) {
+        _playButton = false;
+        _player = player;
+      } else if (!widget.swipe) {
+        _initPlayer();
+      }
     }
   }
 
+  bool _create = false;
+
   @override
   void dispose() {
-    if (_player?.controller.value.isInitialized ?? false) {
-      _player?.controller.pause();
+    if (_create && (_player?.controller.value.isInitialized ?? false)) {
+      _player!.controller.pause();
     }
     super.dispose();
   }
@@ -79,10 +88,12 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
       checkAlive();
       setState(() {
         _player = player;
+        _create = true;
       });
       await player.initialize();
-      checkAlive();
-      setState(() {});
+      aliveSetState(() {
+        player.controller.play();
+      });
     } catch (e) {
       aliveSetState(() {});
     }
@@ -151,7 +162,7 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
     final value = _getValue(context);
     final qual = quality;
     if (widget.isVideo && (_player?.controller.value.isInitialized ?? false)) {
-      return _buildVideo(context, qual, value, _player!);
+      return _buildVideo(context, qual, value, _player!.controller);
     }
     return GestureDetector(
       onTap: () {
@@ -159,6 +170,9 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
           _showController = !_showController;
           widget.onShowController(_showController);
         });
+      },
+      onDoubleTap: () {
+        Navigator.of(context).pop();
       },
       child: Stack(
         children: [
@@ -218,20 +232,17 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
     BuildContext context,
     _PhotoQuality quality,
     int value,
-    Player player,
+    VideoPlayerController controller,
   ) {
-    if (!_play) {
-      _play = true;
-      // controller.play();
-      PlayerManage.instance.play(player);
-    }
-    final controller = player.controller;
     return GestureDetector(
       onTap: () {
         setState(() {
           _showController = !_showController;
           widget.onShowController(_showController);
         });
+      },
+      onDoubleTap: () {
+        Navigator.of(context).pop();
       },
       child: Stack(
         children: [
@@ -249,6 +260,11 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
           _buildFullscreenControllerBackground(context),
           _buildFullscreenController(context, quality, value),
           _buildVideoController(context, controller),
+          Center(
+            child: MyVideoWakelock(
+              controller: controller,
+            ),
+          ),
         ],
       ),
     );
@@ -283,6 +299,7 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
       return Container();
     }
     return _MyPhotoController(
+      image: widget.image,
       controller: widget.controller,
       count: widget.count,
       quality: quality,
@@ -299,12 +316,14 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
 class _MyPhotoController extends StatefulWidget {
   const _MyPhotoController({
     Key? key,
+    required this.image,
     required this.controller,
     required this.count,
     required this.quality,
     required this.value,
     required this.onChanged,
   }) : super(key: key);
+  final PageImage image;
   final SwiperController controller;
   final int count;
   final _PhotoQuality quality;
@@ -338,6 +357,25 @@ class _MyPhotoControllerState extends State<_MyPhotoController> {
     }
   }
 
+  _share() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(S.of(context).app.share),
+          content: SingleChildScrollView(
+            child: _MyShare(
+              image: widget.image,
+              quality: widget.quality,
+              value: widget.value,
+              video: isVideoFile(widget.image.url),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return IntrinsicHeight(
@@ -359,6 +397,12 @@ class _MyPhotoControllerState extends State<_MyPhotoController> {
           ),
           Row(
             children: [
+              IconButton(
+                color: Colors.white,
+                icon: const Icon(Icons.share),
+                tooltip: S.of(context).app.share,
+                onPressed: _share,
+              ),
               _buildMenu(context),
               IconButton(
                 color: Colors.white,
@@ -418,6 +462,92 @@ class _MyPhotoControllerState extends State<_MyPhotoController> {
         }
         return menu;
       },
+    );
+  }
+}
+
+class _MyShare extends StatefulWidget {
+  const _MyShare({
+    Key? key,
+    required this.image,
+    required this.quality,
+    required this.value,
+    required this.video,
+  }) : super(key: key);
+  final PageImage image;
+  final _PhotoQuality quality;
+  final int value;
+  final bool video;
+  @override
+  _MyShareState createState() => _MyShareState();
+}
+
+class _MyShareState extends UIState<_MyShare> {
+  PageImage get image => widget.image;
+  _PhotoQuality get quality => widget.quality;
+  int get value => widget.value;
+  bool get video => widget.video;
+
+  bool _launcher = !isSupportedShare();
+  @override
+  Widget build(BuildContext context) {
+    final children = <Widget>[
+      isSupportedShare()
+          ? SwitchListTile(
+              title: Text(_launcher
+                  ? S.of(context).app.openInBrowser
+                  : S.of(context).app.shareTo),
+              value: _launcher,
+              onChanged: disabled
+                  ? null
+                  : (v) {
+                      setState(() {
+                        _launcher = v;
+                      });
+                    })
+          : Container(),
+      isVideoFile(widget.image.file) ? Container() : Container(),
+      _buildItem(
+        widget.quality[widget.value].item1,
+        widget.quality[widget.value].item2.url,
+      )
+    ];
+    for (var i = 0; i < widget.quality.length; i++) {
+      final item = widget.quality[i];
+      if (i == widget.value) {
+        continue;
+      }
+      children.add(_buildItem(
+        item.item1,
+        item.item2.url,
+      ));
+    }
+    return Column(
+      children: children,
+    );
+  }
+
+  Widget _buildItem(String name, String url) {
+    return ListTile(
+      title: Text(name),
+      onTap: disabled
+          ? null
+          : () async {
+              try {
+                if (_launcher) {
+                  await launch(url);
+                } else {
+                  final flutterShareMe = FlutterShareMe();
+                  await flutterShareMe.shareToSystem(msg: url);
+                }
+                aliveSetState(() => disabled = false);
+              } catch (e) {
+                aliveSetState(() {
+                  disabled = false;
+                  BotToast.showText(text: '$e');
+                });
+              }
+            },
     );
   }
 }

@@ -16,3 +16,7 @@ bool isVideoFile(String file) {
 bool isSupportedVideo() {
   return Platform.isAndroid || Platform.isIOS;
 }
+
+bool isSupportedShare() {
+  return Platform.isAndroid || Platform.isIOS;
+}

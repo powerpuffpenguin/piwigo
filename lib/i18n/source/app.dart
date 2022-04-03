@@ -27,6 +27,18 @@ class App {
         'App.save',
         desc: '保存 按鈕/提示文本',
       );
+  String get share => Intl.message(
+        'App.share',
+        desc: '分享 按鈕/提示文本',
+      );
+  String get shareTo => Intl.message(
+        'App.shareTo',
+        desc: '分享到 按鈕/提示文本',
+      );
+  String get openInBrowser => Intl.message(
+        'App.openInBrowser',
+        desc: '在瀏覽器中開啓 按鈕/提示文本',
+      );
   String get saveSucess => Intl.message(
         'App.saveSucess',
         desc: '提示信息 : 數據已保存',

@@ -1,7 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:piwigo/utils/lru.dart';
+import 'package:flutter/foundation.dart';
 import 'package:piwigo/utils/mutex.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:video_player/video_player.dart';
@@ -10,7 +9,11 @@ class Player {
   final String url;
   final VideoPlayerController controller;
   Player({required this.url})
-      : controller = VideoPlayerController.network(url)..setLooping(true);
+      : controller = VideoPlayerController.network(url,
+            videoPlayerOptions: VideoPlayerOptions(
+              mixWithOthers: true,
+            ))
+          ..setLooping(true);
   Completer<void>? _completer;
   Future<void> initialize() async {
     if (_completer != null) {
@@ -38,10 +41,19 @@ class PlayerManage {
   static PlayerManage? _instance;
   static PlayerManage get instance => _instance ??= PlayerManage._();
   PlayerManage._();
-  final _lru = Lru<String, Player>(4);
+  Player? _player;
   final _subject = PublishSubject<Player>();
   Stream<Player> get stream => _subject;
   final _mutex = Mutex();
+  Player? getInitialized(String url) {
+    if (_player?.controller.value.isInitialized ?? false) {
+      if (_player!.url == url) {
+        return _player!;
+      }
+    }
+    return null;
+  }
+
   Future<Player> get(String url) async {
     await _mutex.lock();
     try {
@@ -52,68 +64,35 @@ class PlayerManage {
   }
 
   Future<Player> _get(String url) async {
-    // 清理出錯資源
-    final list = _lru.toList();
-    for (var item in list) {
-      final player = item.value;
-      final controller = player.controller;
-      if (controller.value.hasError) {
-        _lru.delete(item.key);
-        await _remove(player);
-      }
-    }
-
-    // 查找緩存
-    final cache = _lru.get(url);
+    // 比對緩存
+    final cache = _player;
     if (cache != null) {
-      return cache;
-    }
-
-    /// 佔用太多資源 等待刪除後才創建新的播放器
-    if (_lru.isFull) {
-      final pop = _lru.pop();
-      if (pop != null) {
-        await _remove(pop);
+      if (cache.url != url || cache.controller.value.hasError) {
+        // 緩存錯誤或資源比匹配 釋放資源
+        try {
+          _subject.add(cache);
+          await cache._dispose();
+        } catch (e) {
+          debugPrint("dispose player error: $e");
+        }
+      } else {
+        // 返回匹配的緩存
+        return cache;
       }
     }
-
+    // 創建新資源
     final player = Player(url: url);
-    _lru.put(url, player);
+    _player = player;
     return player;
   }
 
-  Future<void> _remove(Player player) async {
-    _subject.add(player);
-    await player._dispose();
-  }
-
-  bool exists(Player player) => _lru.exists(player.url) == player;
-  Future<void> play(Player player) async {
-    await _mutex.lock();
-    try {
-      await _play(player);
-    } finally {
-      _mutex.unlock();
-    }
-  }
-
-  Future<void> _play(Player player) async {
-    if (!exists(player)) {
-      return;
-    }
-    final list = _lru.list;
-    for (var item in list) {
-      if (item.value != player) {
-        final controller = item.value.controller;
-        if (controller.value.isPlaying) {
-          try {
-            await controller.pause();
-          } catch (e) {
-            debugPrint('pause error: $e');
-          }
-        }
+  void pause() {
+    if (_player?.controller.value.isInitialized ?? false) {
+      try {
+        _player!.controller.pause();
+      } catch (e) {
+        debugPrint('player pause error: $e');
       }
     }
-    await player.controller.play();
   }
 }

@@ -9,6 +9,14 @@ class Mutex {
     _completer = Completer<void>();
   }
 
+  bool tryLock() {
+    if (_completer != null) {
+      return false;
+    }
+    _completer = Completer<void>();
+    return true;
+  }
+
   void unlock() {
     final completer = _completer!;
     _completer = null;

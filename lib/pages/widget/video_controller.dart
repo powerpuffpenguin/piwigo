@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:piwigo/service/wakelock_service.dart';
 import 'package:ppg_ui/ppg_ui.dart';
 import 'package:video_player/video_player.dart';
 
@@ -178,6 +179,84 @@ class _MyVideoControllerState extends UIState<MyVideoController> {
           ],
         ),
       ],
+    );
+  }
+}
+
+class MyVideoWakelock extends StatefulWidget {
+  const MyVideoWakelock({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
+  final VideoPlayerController controller;
+
+  @override
+  _MyVideoWakelockState createState() => _MyVideoWakelockState();
+}
+
+class _MyVideoWakelockState extends UIState<MyVideoWakelock> {
+  VideoPlayerController get controller => widget.controller;
+  bool _playing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (controller.value.isInitialized) {
+      _playing = controller.value.isPlaying;
+      WakelockService.instance.enable();
+    }
+    controller.addListener(_videoListener);
+  }
+
+  @override
+  void dispose() {
+    controller.removeListener(_videoListener);
+    WakelockService.instance.disable();
+    super.dispose();
+  }
+
+  void _videoListener() {
+    if (!controller.value.isInitialized) {
+      return;
+    }
+    if (controller.value.isPlaying != _playing) {
+      setState(() {
+        _playing = controller.value.isPlaying;
+        if (_playing) {
+          WakelockService.instance.enable();
+        }
+      });
+    }
+  }
+
+  _play() async {
+    if (disabled) {
+      return;
+    }
+    final value = controller.value;
+    if (value.isPlaying) {
+      return;
+    }
+    disabled = true;
+    try {
+      await controller.play();
+    } catch (e) {
+      debugPrint('video play error: $e');
+    } finally {
+      disabled = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final value = controller.value;
+    if (!value.isInitialized || _playing) {
+      return Container();
+    }
+    return IconButton(
+      iconSize: 64,
+      onPressed: disabled ? null : _play,
+      icon: const Icon(Icons.video_collection_rounded),
     );
   }
 }

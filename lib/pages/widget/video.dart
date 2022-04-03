@@ -72,7 +72,7 @@ class _MyVideoState extends UIState<MyVideo> {
       });
       await player.initialize();
       checkAlive();
-      await PlayerManage.instance.play(player);
+      player.controller.play();
       setState(() {});
     } catch (e) {
       aliveSetState(() {});
@@ -90,7 +90,7 @@ class _MyVideoState extends UIState<MyVideo> {
           if (controller.value.isPlaying) {
             controller.pause();
           } else {
-            PlayerManage.instance.play(player);
+            controller.play();
           }
         },
         child: _buildVideo(context, controller),
