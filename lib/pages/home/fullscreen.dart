@@ -1,10 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:piwigo/environment.dart';
 import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
 import 'package:piwigo/pages/widget/photo_view.dart';
 import 'package:piwigo/pages/widget/swiper/swiper.dart';
+import 'package:piwigo/pages/widget/video/player_manage.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/utils/path.dart';
 import 'package:rxdart/subjects.dart';
@@ -39,12 +39,22 @@ class _MyFullscreenPageState extends State<MyFullscreenPage> {
     );
     _focusNode.dispose();
     _subject.close();
+    PlayerManage.instance.pause();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: MyEnvironment.isProduct
+          ? null
+          : FloatingActionButton(onPressed: () {
+              _subject.add(const MyKeyEvent(
+                physicalKey: PhysicalKeyboardKey.abort,
+                logicalKey: LogicalKeyboardKey.arrowDown,
+                timeStamp: Duration(seconds: 1),
+              ));
+            }),
       body: MyKeyboardListener(
         focusNode: _focusNode,
         autofocus: true,
@@ -84,4 +94,15 @@ class _MyFullscreenPageState extends State<MyFullscreenPage> {
       ),
     );
   }
+}
+
+class MyKeyEvent extends KeyEvent {
+  const MyKeyEvent({
+    required PhysicalKeyboardKey physicalKey,
+    required LogicalKeyboardKey logicalKey,
+    required Duration timeStamp,
+  }) : super(
+            physicalKey: physicalKey,
+            logicalKey: logicalKey,
+            timeStamp: timeStamp);
 }

@@ -260,6 +260,7 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
             child: Hero(
               tag: "photoView_${widget.image.id}",
               child: _VideoPlayer(
+                image: widget.image,
                 controller: controller,
                 stream: widget.stream,
               ),
@@ -573,9 +574,11 @@ class _MyShareState extends UIState<_MyShare> {
 class _VideoPlayer extends StatefulWidget {
   const _VideoPlayer({
     Key? key,
+    required this.image,
     required this.stream,
     required this.controller,
   }) : super(key: key);
+  final PageImage image;
   final Stream<KeyEvent> stream;
   final VideoPlayerController controller;
   @override
@@ -586,8 +589,8 @@ class _VideoPlayerState extends UIState<_VideoPlayer> {
   @override
   void initState() {
     super.initState();
+
     addSubscription(widget.stream.listen((evt) {
-      debugPrint("$evt ${evt.logicalKey == LogicalKeyboardKey.arrowDown}");
       if (evt.logicalKey == LogicalKeyboardKey.select) {
         final controller = widget.controller;
         if (controller.value.isInitialized) {
@@ -625,12 +628,43 @@ class _VideoPlayerState extends UIState<_VideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: pi / 2 * rotate,
-      child: AspectRatio(
+    if (rotate == 0) {
+      return AspectRatio(
         aspectRatio: widget.controller.value.aspectRatio,
         child: VideoPlayer(widget.controller),
+      );
+    }
+    // 調整一些 android tv 屏幕顛倒
+    final size = MediaQuery.of(context).size;
+    var width = size.width;
+    var height = size.height;
+    var w = width;
+    var h = widget.image.height * w / widget.image.width;
+    if (h > height) {
+      h = height;
+      w = widget.image.width * h / widget.image.height;
+    }
+    if (rotate % 2 == 0) {
+      return Transform.rotate(
+        angle: pi / 2 * rotate,
+        child: _buildBody(context, w, h),
+      );
+    }
+    final scale = size.width / size.height;
+    return Transform.scale(
+      scale: scale,
+      child: Transform.rotate(
+        angle: pi / 2 * rotate,
+        child: _buildBody(context, w, h),
       ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, double width, double height) {
+    return SizedBox(
+      width: width,
+      height: height,
+      child: VideoPlayer(widget.controller),
     );
   }
 }

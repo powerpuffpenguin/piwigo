@@ -1,5 +1,6 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:piwigo/db/language.dart';
 import 'package:piwigo/db/theme.dart';
@@ -15,8 +16,12 @@ import 'package:ppg_ui/ppg_ui.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  MyLanguage.instance.load().then((language) {
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]).then((value) => MyLanguage.instance.load()).then((language) {
     MyTheme.instance.load().then(
           (theme) => runApp(
             MyApp(

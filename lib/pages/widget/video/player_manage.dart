@@ -86,12 +86,23 @@ class PlayerManage {
     return player;
   }
 
-  void pause() {
-    if (_player?.controller.value.isInitialized ?? false) {
+  void pause() async {
+    final player = _player;
+    if (player != null) {
+      if (player._completer == null) {
+        return;
+      }
+      await _mutex.lock();
       try {
-        _player!.controller.pause();
-      } catch (e) {
-        debugPrint('player pause error: $e');
+        if (_player != player) {
+          return;
+        }
+        await player.initialize();
+        if (player.controller.value.isPlaying) {
+          player.controller.pause();
+        }
+      } finally {
+        _mutex.unlock();
       }
     }
   }
