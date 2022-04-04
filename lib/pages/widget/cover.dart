@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:piwigo/utils/wrap.dart';
 
-class MyCover extends StatelessWidget {
+class MyCover extends StatefulWidget {
   const MyCover({
     Key? key,
     required this.src,
@@ -11,7 +11,6 @@ class MyCover extends StatelessWidget {
     required this.height,
     this.onTap,
     this.focusNode,
-    this.focusColor,
   }) : super(key: key);
   final String src;
   final String title;
@@ -20,52 +19,8 @@ class MyCover extends StatelessWidget {
   final double height;
   final VoidCallback? onTap;
   final FocusNode? focusNode;
-  final Color? focusColor;
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Ink(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        image: DecorationImage(
-          image: NetworkImage(src),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: InkWell(
-        focusNode: focusNode,
-        focusColor: focusColor,
-        onTap: onTap,
-        child: Container(
-          alignment: Alignment.bottomLeft,
-          child: IntrinsicHeight(
-            child: Container(
-              color: theme.colorScheme.surface.withOpacity(0.75),
-              width: width,
-              padding: const EdgeInsets.all(8),
-              child: RichText(
-                text: TextSpan(
-                  children: <InlineSpan>[
-                    TextSpan(
-                      text: '$title\n',
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(color: theme.colorScheme.primary),
-                    ),
-                    TextSpan(
-                      text: text,
-                      style: theme.textTheme.bodyText2,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  _MyCoverState createState() => _MyCoverState();
 
   /// 傳入佈局寬度，返回組件適合的寬度
   static double calculateWidth(double w, double spacing) {
@@ -118,6 +73,111 @@ class MyCover extends StatelessWidget {
       cols: cols,
       rows: rows,
       fit: 0,
+    );
+  }
+}
+
+class _MyCoverState extends State<MyCover> {
+  String get src => widget.src;
+  String get title => widget.title;
+  String get text => widget.text;
+  double get width => widget.width;
+  double get height => widget.height;
+  VoidCallback? get onTap => widget.onTap;
+  FocusNode? get focusNode => widget.focusNode;
+  bool _hasFocus = false;
+  @override
+  void initState() {
+    super.initState();
+    focusNode?.addListener(_listener);
+    _hasFocus = focusNode?.hasFocus ?? false;
+  }
+
+  @override
+  void dispose() {
+    focusNode?.removeListener(_listener);
+    super.dispose();
+  }
+
+  void _listener() {
+    final val = focusNode?.hasFocus ?? false;
+    if (val != _hasFocus) {
+      setState(() {
+        _hasFocus = val;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Ink(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        image: src.startsWith('http://') || src.startsWith('https://')
+            ? DecorationImage(
+                image: NetworkImage(src),
+                fit: BoxFit.cover,
+              )
+            : null,
+      ),
+      child: InkWell(
+        focusNode: focusNode,
+        onTap: onTap,
+        child: _buildBody(context),
+      ),
+    );
+  }
+
+  Widget? _buildBody(BuildContext context) {
+    if (_hasFocus) {
+      return Stack(
+        children: [
+          _buildView(context),
+          Container(
+            width: width,
+            height: height,
+            alignment: Alignment.topRight,
+            child: Icon(
+              Icons.check_circle_outline,
+              size: 32,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ],
+      );
+    }
+    return _buildView(context);
+  }
+
+  Widget _buildView(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      alignment: Alignment.bottomLeft,
+      child: IntrinsicHeight(
+        child: Container(
+          color: theme.colorScheme.surface.withOpacity(0.75),
+          width: width,
+          padding: const EdgeInsets.all(8),
+          child: RichText(
+            text: TextSpan(
+              children: <InlineSpan>[
+                TextSpan(
+                  text: '$title\n',
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(color: theme.colorScheme.primary),
+                ),
+                TextSpan(
+                  text: text,
+                  style: theme.textTheme.bodyText2,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,14 +1,18 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
+import 'package:piwigo/pages/home/select_action.dart';
 import 'package:piwigo/pages/home/view.dart';
+import 'package:piwigo/pages/widget/builder/row_builder.dart';
 import 'package:piwigo/pages/widget/cover.dart';
 import 'package:piwigo/pages/widget/drawer.dart';
+import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
 import 'package:piwigo/pages/widget/spin.dart';
+import 'package:piwigo/pages/widget/state.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
 import 'package:piwigo/utils/wrap.dart';
-import 'package:ppg_ui/ppg_ui.dart';
+import './select_action.dart';
 
 Client? gclient;
 
@@ -22,14 +26,12 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends UIState<MyHomePage> {
+class _MyHomePageState extends MyState<MyHomePage> {
   Client get client => gclient ?? widget.client;
   bool _inited = false;
   dynamic _error;
   final _source = <Categorie>[];
   final _cancelToken = CancelToken();
-  final _focusNode = FocusNode();
-  final _focusNode1 = FocusNode();
   @override
   void initState() {
     gclient = client;
@@ -48,8 +50,6 @@ class _MyHomePageState extends UIState<MyHomePage> {
 
   @override
   void dispose() {
-    _focusNode.dispose();
-    _focusNode1.dispose();
     _cancelToken.cancel();
     if (client.status != null) {
       client.logout();
@@ -105,43 +105,82 @@ class _MyHomePageState extends UIState<MyHomePage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return RawKeyboardListener(
-      onKey: (evt) {
-        debugPrint('$evt');
-        Future.delayed(const Duration(milliseconds: 100)).then((value) {
-          _focusNode1.requestFocus();
-        });
-      },
-      focusNode: _focusNode,
-      child: Scaffold(
-        drawer: MyDrawerView(
+  void openView(Categorie categorie) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MyViewPage(
           client: client,
-          disabled: disabled,
+          categorie: categorie,
         ),
-        appBar: AppBar(
-          title: Text(S.of(context).appName),
-        ),
-        body: _error == null
-            ? _buildBody(context)
-            : Text(
-                "$_error",
-                style: TextStyle(color: Theme.of(context).errorColor),
-              ),
-        floatingActionButton: _buildFloatingActionButton(context),
       ),
     );
   }
 
-  Widget? _buildBody(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: FocusScope(
+          node: focusScopeNode,
+          child: Builder(
+            builder: (context) => IconButton(
+              focusNode: createFocusNode(
+                'openDrawer',
+                data: const MySelectAction(what: MyActionType.openDrawer),
+              ),
+              icon: const Icon(Icons.menu),
+              iconSize: 24,
+              onPressed: () => Scaffold.of(context).openDrawer(),
+              tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+            ),
+          ),
+        ),
+        title: Text(S.of(context).appName),
+      ),
+      drawer: MyDrawerView(
+        client: client,
+        disabled: disabled,
+      ),
+      body: Builder(
+        builder: (context) => MyKeyboardListener(
+          onSelected: disabled
+              ? null
+              : () {
+                  final data = focusedNode()?.data;
+                  if (data is MySelectAction) {
+                    switch (data.what) {
+                      case MyActionType.openDrawer:
+                        Scaffold.of(context).openDrawer();
+                        break;
+                      case MyActionType.openView:
+                        openView(data.data);
+                        break;
+                      default:
+                    }
+                  }
+                },
+          focusNode: createFocusNode('KeyboardListener'),
+          builder: (context) {
+            return _error == null
+                ? _buildBody(context)
+                : Text(
+                    "$_error",
+                    style: TextStyle(color: Theme.of(context).errorColor),
+                  );
+          },
+        ),
+      ),
+      floatingActionButton: _buildFloatingActionButton(context),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
     if (_source.isEmpty) {
-      return null;
+      return Container();
     }
     final size = MediaQuery.of(context).size;
     const spacing = 8.0;
     final wrap = MyCover.calculateWrap(size, spacing, _source.length);
-
     return ListView.builder(
       itemCount: wrap.rows,
       itemBuilder: (context, index) =>
@@ -159,8 +198,6 @@ class _MyHomePageState extends UIState<MyHomePage> {
     if (end > _source.length) {
       end = _source.length;
     }
-    final range = _source.getRange(start, end);
-    var first = true;
     return Container(
       padding: EdgeInsets.only(left: wrap.spacing, right: wrap.spacing),
       alignment: Alignment.topCenter,
@@ -168,8 +205,11 @@ class _MyHomePageState extends UIState<MyHomePage> {
         alignment: Alignment.topLeft,
         padding: EdgeInsets.only(top: wrap.spacing),
         width: wrap.viewWidth,
-        child: Row(
-          children: range.map<Widget>((node) {
+        child: RowBuilder(
+          start: start,
+          end: end,
+          itemBuilder: (context, i) {
+            final node = _source[i];
             var text = S.of(context).home.countPhoto(node.images);
             if (node.categories > 0 && node.categories >= node.images) {
               text += S
@@ -177,37 +217,31 @@ class _MyHomePageState extends UIState<MyHomePage> {
                   .home
                   .countPhotoInSub(node.categories - node.images);
             }
-            EdgeInsetsGeometry? padding;
-            if (first) {
-              first = false;
-            } else {
-              padding = EdgeInsets.only(left: wrap.spacing);
-            }
-            return Container(
-              padding: padding,
-              child: MyCover(
-                focusNode: _focusNode1,
-                focusColor: Colors.lightBlue.withOpacity(0.4),
-                onTap: disabled
-                    ? null
-                    : () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => MyViewPage(
-                              client: client,
-                              categorie: node,
-                            ),
-                          ),
-                        );
-                      },
-                src: node.cover,
-                title: node.name,
-                text: text,
-                width: wrap.width,
-                height: wrap.height,
+            final padding =
+                start == i ? null : EdgeInsets.only(left: wrap.spacing);
+            return FocusScope(
+              autofocus: true,
+              node: focusScopeNode,
+              child: Container(
+                padding: padding,
+                child: MyCover(
+                  focusNode: createFocusNode(
+                    node.id,
+                    data: MySelectAction(
+                      what: MyActionType.openView,
+                      data: node,
+                    ),
+                  ),
+                  onTap: disabled ? null : () => openView(node),
+                  src: node.cover,
+                  title: node.name,
+                  text: text,
+                  width: wrap.width,
+                  height: wrap.height,
+                ),
               ),
             );
-          }).toList(),
+          },
         ),
       ),
     );

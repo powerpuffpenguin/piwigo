@@ -109,7 +109,7 @@ class _MyAddPageState extends UIState<MyAddPage> {
       }
       if (widget.push) {
         MySettings.instance.setAccount(account.id);
-        Navigator.of(context).push(
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => MyHomePage(
               client: client,
