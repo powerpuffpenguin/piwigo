@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_share_me/flutter_share_me.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
@@ -25,7 +28,9 @@ class MyPhotoView extends StatefulWidget {
     required this.initShowController,
     required this.onShowController,
     required this.isVideo,
+    required this.stream,
   }) : super(key: key);
+  final Stream<KeyEvent> stream;
   final PageImage image;
   final SwiperController controller;
   final int count;
@@ -254,10 +259,14 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
             alignment: Alignment.center,
             child: Hero(
               tag: "photoView_${widget.image.id}",
-              child: AspectRatio(
-                aspectRatio: controller.value.aspectRatio,
-                child: VideoPlayer(controller),
+              child: _VideoPlayer(
+                controller: controller,
+                stream: widget.stream,
               ),
+              // child: AspectRatio(
+              //   aspectRatio: controller.value.aspectRatio,
+              //   child: VideoPlayer(controller),
+              // ),
             ),
           ),
           _buildFullscreenControllerBackground(context),
@@ -557,6 +566,71 @@ class _MyShareState extends UIState<_MyShare> {
                 });
               }
             },
+    );
+  }
+}
+
+class _VideoPlayer extends StatefulWidget {
+  const _VideoPlayer({
+    Key? key,
+    required this.stream,
+    required this.controller,
+  }) : super(key: key);
+  final Stream<KeyEvent> stream;
+  final VideoPlayerController controller;
+  @override
+  _VideoPlayerState createState() => _VideoPlayerState();
+}
+
+class _VideoPlayerState extends UIState<_VideoPlayer> {
+  @override
+  void initState() {
+    super.initState();
+    addSubscription(widget.stream.listen((evt) {
+      debugPrint("$evt ${evt.logicalKey == LogicalKeyboardKey.arrowDown}");
+      if (evt.logicalKey == LogicalKeyboardKey.select) {
+        final controller = widget.controller;
+        if (controller.value.isInitialized) {
+          if (controller.value.isPlaying) {
+            controller.pause();
+          } else {
+            controller.play();
+          }
+        }
+      } else if (evt.logicalKey == LogicalKeyboardKey.arrowUp) {
+        if (rotate > 0) {
+          aliveSetState(() {
+            rotate--;
+          });
+        } else {
+          aliveSetState(() {
+            rotate = 3;
+          });
+        }
+      } else if (evt.logicalKey == LogicalKeyboardKey.arrowDown) {
+        if (rotate < 3) {
+          aliveSetState(() {
+            rotate++;
+          });
+        } else {
+          aliveSetState(() {
+            rotate = 0;
+          });
+        }
+      }
+    }));
+  }
+
+  int rotate = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: pi / 2 * rotate,
+      child: AspectRatio(
+        aspectRatio: widget.controller.value.aspectRatio,
+        child: VideoPlayer(widget.controller),
+      ),
     );
   }
 }

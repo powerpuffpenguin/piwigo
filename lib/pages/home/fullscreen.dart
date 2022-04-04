@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
@@ -22,6 +24,7 @@ class MyFullscreenPage extends StatefulWidget {
 class _MyFullscreenPageState extends State<MyFullscreenPage> {
   bool _showController = false;
   final _focusNode = FocusNode();
+  final _subject = PublishSubject<KeyEvent>();
   @override
   void initState() {
     super.initState();
@@ -35,6 +38,7 @@ class _MyFullscreenPageState extends State<MyFullscreenPage> {
       SystemUiMode.edgeToEdge,
     );
     _focusNode.dispose();
+    _subject.close();
     super.dispose();
   }
 
@@ -45,6 +49,7 @@ class _MyFullscreenPageState extends State<MyFullscreenPage> {
         focusNode: _focusNode,
         autofocus: true,
         onKeyTab: (evt) {
+          _subject.add(evt);
           if (evt.logicalKey == LogicalKeyboardKey.arrowLeft) {
             if (!_showController) {
               final val = widget.controller.value - 1;
@@ -63,6 +68,7 @@ class _MyFullscreenPageState extends State<MyFullscreenPage> {
           itemBuilder: (context, details) {
             final image = widget.source[details.index];
             return MyPhotoView(
+              stream: _subject,
               isVideo: isVideoFile(image.file),
               image: image,
               controller: widget.controller,
