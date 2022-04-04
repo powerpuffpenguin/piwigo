@@ -1,6 +1,8 @@
 enum MyActionType {
   openDrawer,
   openView,
+  openFullscreen,
+  arrowBack,
 }
 
 class MySelectAction {

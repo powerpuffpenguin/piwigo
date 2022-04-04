@@ -61,6 +61,9 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
       if (player != null) {
         _playButton = false;
         _player = player;
+        if (!player.controller.value.isPlaying) {
+          player.controller.play();
+        }
       } else if (!widget.swipe) {
         _initPlayer();
       }

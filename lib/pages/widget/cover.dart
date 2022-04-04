@@ -4,7 +4,7 @@ import 'package:piwigo/utils/wrap.dart';
 class MyCover extends StatefulWidget {
   const MyCover({
     Key? key,
-    required this.src,
+    required this.url,
     required this.title,
     this.text = '',
     required this.width,
@@ -12,7 +12,7 @@ class MyCover extends StatefulWidget {
     this.onTap,
     this.focusNode,
   }) : super(key: key);
-  final String src;
+  final String url;
   final String title;
   final String text;
   final double width;
@@ -78,7 +78,7 @@ class MyCover extends StatefulWidget {
 }
 
 class _MyCoverState extends State<MyCover> {
-  String get src => widget.src;
+  String get url => widget.url;
   String get title => widget.title;
   String get text => widget.text;
   double get width => widget.width;
@@ -116,9 +116,9 @@ class _MyCoverState extends State<MyCover> {
       height: height,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        image: src.startsWith('http://') || src.startsWith('https://')
+        image: url.startsWith('http://') || url.startsWith('https://')
             ? DecorationImage(
-                image: NetworkImage(src),
+                image: NetworkImage(url),
                 fit: BoxFit.cover,
               )
             : null,

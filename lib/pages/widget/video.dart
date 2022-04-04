@@ -14,12 +14,14 @@ class MyVideo extends StatefulWidget {
     required this.image,
     required this.width,
     required this.height,
-    required this.onFullscreen,
+    this.onTap,
+    this.focusNode,
   }) : super(key: key);
   final PageImage image;
   final double width;
   final double height;
-  final VoidCallback onFullscreen;
+  final VoidCallback? onTap;
+  final FocusNode? focusNode;
   @override
   _MyVideoState createState() => _MyVideoState();
 }
@@ -28,12 +30,15 @@ class _MyVideoState extends UIState<MyVideo> {
   PageImage get image => widget.image;
   double get width => widget.width;
   double get height => widget.height;
+  FocusNode? get focusNode => widget.focusNode;
   Player? _player;
   bool _playButton = true;
-
+  bool _hasFocus = false;
   @override
   void initState() {
     super.initState();
+    focusNode?.addListener(_listener);
+    _hasFocus = focusNode?.hasFocus ?? false;
 
     if (isSupportedVideo()) {
       addSubscription(PlayerManage.instance.stream.listen((event) {
@@ -49,10 +54,20 @@ class _MyVideoState extends UIState<MyVideo> {
 
   @override
   void dispose() {
+    focusNode?.removeListener(_listener);
     if (_player?.controller.value.isInitialized ?? false) {
       _player?.controller.pause();
     }
     super.dispose();
+  }
+
+  _listener() {
+    final val = focusNode?.hasFocus ?? false;
+    if (val != _hasFocus) {
+      setState(() {
+        _hasFocus = val;
+      });
+    }
   }
 
   _initPlayer() async {
@@ -85,7 +100,7 @@ class _MyVideoState extends UIState<MyVideo> {
     if (player?.controller.value.isInitialized ?? false) {
       final controller = player!.controller;
       return GestureDetector(
-        onDoubleTap: widget.onFullscreen,
+        onDoubleTap: widget.onTap,
         onTap: () {
           if (controller.value.isPlaying) {
             controller.pause();
@@ -96,10 +111,7 @@ class _MyVideoState extends UIState<MyVideo> {
         child: _buildVideo(context, controller),
       );
     }
-    return GestureDetector(
-      onTap: widget.onFullscreen,
-      child: _buildInit(context),
-    );
+    return _buildInit(context);
   }
 
   Widget _buildVideo(
@@ -128,29 +140,71 @@ class _MyVideoState extends UIState<MyVideo> {
             controller: controller,
           ),
         ),
+        Focus(
+          focusNode: widget.focusNode,
+          child: Container(
+            width: width,
+            height: height,
+            alignment: Alignment.topRight,
+            child: _hasFocus
+                ? Icon(
+                    Icons.check_circle_outline,
+                    size: 32,
+                    color: Theme.of(context).colorScheme.primary,
+                  )
+                : null,
+          ),
+        )
       ],
     );
   }
 
   Widget _buildInit(BuildContext context) {
-    return Stack(
-      children: [
-        Hero(
-          tag: "photoView_${widget.image.id}",
-          child: Image.network(
-            image.derivatives.smallXX.url,
+    final theme = Theme.of(context);
+    final url = image.derivatives.smallXX.url;
+    return Ink(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        image: url.startsWith('http://') || url.startsWith('https://')
+            ? DecorationImage(
+                image: NetworkImage(url),
+                fit: BoxFit.cover,
+              )
+            : null,
+      ),
+      child: InkWell(
+        focusNode: focusNode,
+        onTap: widget.onTap,
+        child: Stack(children: [
+          Hero(
+            tag: "photoView_${widget.image.id}",
+            child: SizedBox(
+              width: width,
+              height: height,
+            ),
+          ),
+          Container(
+            alignment: Alignment.center,
             width: width,
             height: height,
-            fit: BoxFit.cover,
+            child: _buildVideoFlag(context),
           ),
-        ),
-        Container(
-          alignment: Alignment.center,
-          width: width,
-          height: height,
-          child: _buildVideoFlag(context),
-        ),
-      ],
+          _hasFocus
+              ? Container(
+                  width: width,
+                  height: height,
+                  alignment: Alignment.topRight,
+                  child: Icon(
+                    Icons.check_circle_outline,
+                    size: 32,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                )
+              : Container(),
+        ]),
+      ),
     );
   }
 
@@ -180,14 +234,16 @@ class _MyVideoState extends UIState<MyVideo> {
       );
     }
     return Center(
-      child: IconButton(
-        iconSize: 32,
-        onPressed: isSupportedVideo()
+      child: GestureDetector(
+        child: const Icon(
+          Icons.video_collection_rounded,
+          size: 32,
+        ),
+        onTap: isSupportedVideo()
             ? (_playButton ? _initPlayer : null)
             : () {
                 launch(widget.image.url);
               },
-        icon: const Icon(Icons.video_collection_rounded),
       ),
     );
   }

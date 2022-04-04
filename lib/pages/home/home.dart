@@ -105,7 +105,7 @@ class _MyHomePageState extends MyState<MyHomePage> {
     }
   }
 
-  void openView(Categorie categorie) {
+  void _openView(Categorie categorie) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => MyViewPage(
@@ -153,7 +153,7 @@ class _MyHomePageState extends MyState<MyHomePage> {
                         Scaffold.of(context).openDrawer();
                         break;
                       case MyActionType.openView:
-                        openView(data.data);
+                        _openView(data.data);
                         break;
                       default:
                     }
@@ -211,11 +211,11 @@ class _MyHomePageState extends MyState<MyHomePage> {
           itemBuilder: (context, i) {
             final node = _source[i];
             var text = S.of(context).home.countPhoto(node.images);
-            if (node.categories > 0 && node.categories >= node.images) {
+            if (node.categories > 0 && node.totalImages >= node.images) {
               text += S
                   .of(context)
                   .home
-                  .countPhotoInSub(node.categories - node.images);
+                  .countPhotoInSub(node.totalImages - node.images);
             }
             final padding =
                 start == i ? null : EdgeInsets.only(left: wrap.spacing);
@@ -232,8 +232,8 @@ class _MyHomePageState extends MyState<MyHomePage> {
                       data: node,
                     ),
                   ),
-                  onTap: disabled ? null : () => openView(node),
-                  src: node.cover,
+                  onTap: disabled ? null : () => _openView(node),
+                  url: node.cover,
                   title: node.name,
                   text: text,
                   width: wrap.width,

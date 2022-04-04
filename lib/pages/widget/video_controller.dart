@@ -189,7 +189,6 @@ class MyVideoWakelock extends StatefulWidget {
     required this.controller,
   }) : super(key: key);
   final VideoPlayerController controller;
-
   @override
   _MyVideoWakelockState createState() => _MyVideoWakelockState();
 }

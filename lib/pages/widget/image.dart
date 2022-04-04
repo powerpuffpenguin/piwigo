@@ -10,12 +10,14 @@ class MyImage extends StatelessWidget {
     required this.image,
     required this.width,
     required this.height,
-    required this.onFullscreen,
+    this.onTap,
+    this.focusNode,
   }) : super(key: key);
   final double width;
   final double height;
   final PageImage image;
-  final VoidCallback onFullscreen;
+  final VoidCallback? onTap;
+  final FocusNode? focusNode;
   @override
   Widget build(BuildContext context) {
     if (isVideoFile(image.file)) {
@@ -23,20 +25,17 @@ class MyImage extends StatelessWidget {
         width: width,
         height: height,
         image: image,
-        onFullscreen: onFullscreen,
+        onTap: onTap,
+        focusNode: focusNode,
       );
     }
-    return GestureDetector(
-      onTap: onFullscreen,
-      child: Hero(
-        tag: "photoView_${image.id}",
-        child: Image.network(
-          image.derivatives.smallXX.url,
-          width: width,
-          height: height,
-          fit: BoxFit.cover,
-        ),
-      ),
+    return _ImageView(
+      tag: "photoView_${image.id}",
+      onTap: onTap,
+      focusNode: focusNode,
+      width: width,
+      height: height,
+      url: image.derivatives.smallXX.url,
     );
   }
 
@@ -123,5 +122,104 @@ class MyImage extends StatelessWidget {
       rows: rows,
       fit: fitHeight,
     );
+  }
+}
+
+class _ImageView extends StatefulWidget {
+  const _ImageView({
+    Key? key,
+    this.tag,
+    required this.width,
+    required this.height,
+    required this.url,
+    this.onTap,
+    this.focusNode,
+  }) : super(key: key);
+  final String? tag;
+  final double width;
+  final double height;
+  final String url;
+  final VoidCallback? onTap;
+  final FocusNode? focusNode;
+
+  @override
+  _ImageViewState createState() => _ImageViewState();
+}
+
+class _ImageViewState extends State<_ImageView> {
+  String get url => widget.url;
+  double get width => widget.width;
+  double get height => widget.height;
+  VoidCallback? get onTap => widget.onTap;
+  FocusNode? get focusNode => widget.focusNode;
+  bool _hasFocus = false;
+  @override
+  void initState() {
+    super.initState();
+    focusNode?.addListener(_listener);
+    _hasFocus = focusNode?.hasFocus ?? false;
+  }
+
+  @override
+  void dispose() {
+    focusNode?.removeListener(_listener);
+    super.dispose();
+  }
+
+  void _listener() {
+    final val = focusNode?.hasFocus ?? false;
+    if (val != _hasFocus) {
+      setState(() {
+        _hasFocus = val;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Ink(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        image: url.startsWith('http://') || url.startsWith('https://')
+            ? DecorationImage(
+                image: NetworkImage(url),
+                fit: BoxFit.cover,
+              )
+            : null,
+      ),
+      child: InkWell(
+        focusNode: focusNode,
+        onTap: onTap,
+        child: widget.tag == null
+            ? _buildBody(context)
+            : Hero(
+                tag: widget.tag!,
+                child: SizedBox(
+                  width: width,
+                  height: height,
+                  child: _buildBody(context),
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    if (_hasFocus) {
+      return Container(
+        width: width,
+        height: height,
+        alignment: Alignment.topRight,
+        child: Icon(
+          Icons.check_circle_outline,
+          size: 32,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
+    }
+    return Container();
   }
 }
