@@ -601,15 +601,9 @@ class _VideoPlayerState extends UIState<_VideoPlayer> {
           }
         }
       } else if (evt.logicalKey == LogicalKeyboardKey.arrowUp) {
-        if (rotate > 0) {
-          aliveSetState(() {
-            rotate--;
-          });
-        } else {
-          aliveSetState(() {
-            rotate = 3;
-          });
-        }
+        aliveSetState(() {
+          scaled++;
+        });
       } else if (evt.logicalKey == LogicalKeyboardKey.arrowDown) {
         if (rotate < 3) {
           aliveSetState(() {
@@ -625,7 +619,7 @@ class _VideoPlayerState extends UIState<_VideoPlayer> {
   }
 
   int rotate = 0;
-
+  int scaled = 0;
   @override
   Widget build(BuildContext context) {
     if (rotate == 0) {
@@ -634,37 +628,52 @@ class _VideoPlayerState extends UIState<_VideoPlayer> {
         child: VideoPlayer(widget.controller),
       );
     }
-    // 調整一些 android tv 屏幕顛倒
-    final size = MediaQuery.of(context).size;
-    var width = size.width;
-    var height = size.height;
-    var w = width;
-    var h = widget.image.height * w / widget.image.width;
-    if (h > height) {
-      h = height;
-      w = widget.image.width * h / widget.image.height;
-    }
-    if (rotate % 2 == 0) {
+    // // 調整一些 android tv 屏幕顛倒
+    // final size = MediaQuery.of(context).size;
+    // var width = size.width;
+    // var height = size.height;
+    // var w = width;
+    // var h = widget.image.height * w / widget.image.width;
+    // if (h > height) {
+    //   h = height;
+    //   w = widget.image.width * h / widget.image.height;
+    // }
+    if (scaled == 0) {
       return Transform.rotate(
         angle: pi / 2 * rotate,
-        child: _buildBody(context, w, h),
+        child: AspectRatio(
+          aspectRatio: widget.controller.value.aspectRatio,
+          child: VideoPlayer(widget.controller),
+        ),
       );
     }
-    final scale = size.width / size.height;
+    final size = MediaQuery.of(context).size;
+    final box = min(size.width, size.height);
     return Transform.scale(
-      scale: scale,
+      scale: (50 + scaled) / 50,
       child: Transform.rotate(
         angle: pi / 2 * rotate,
-        child: _buildBody(context, w, h),
+        child: SizedBox(
+          width: box,
+          height: box,
+          child: AspectRatio(
+            aspectRatio: widget.controller.value.aspectRatio,
+            child: VideoPlayer(widget.controller),
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildBody(BuildContext context, double width, double height) {
-    return SizedBox(
-      width: width,
-      height: height,
+    return AspectRatio(
+      aspectRatio: widget.image.height / widget.image.width,
       child: VideoPlayer(widget.controller),
     );
+    // return SizedBox(
+    //   width: width,
+    //   height: height,
+    //   child: VideoPlayer(widget.controller),
+    // );
   }
 }
