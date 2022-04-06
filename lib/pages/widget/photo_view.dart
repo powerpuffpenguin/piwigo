@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_share_me/flutter_share_me.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:piwigo/db/video.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/pages/widget/swiper/swiper.dart';
@@ -595,6 +596,11 @@ class _VideoPlayerState extends UIState<_VideoPlayer> {
   @override
   void initState() {
     super.initState();
+
+    final data = MyVideo.instance.data;
+    _rotate = data.rotate;
+    _scaled = data.scale;
+    _aspectRatio = data.reverse;
 
     addSubscription(widget.stream.listen((evt) {
       if (!widget.showController) {

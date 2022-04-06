@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:piwigo/utils/enum.dart';
 import 'package:piwigo/utils/json.dart';
 
@@ -88,6 +90,9 @@ abstract class RpcClient {
     required this.password,
   });
   final String path = 'ws.php';
+
+  /// 最後登入時間
+  DateTime? last;
   Map<String, dynamic> queryParameters(String method,
       {Map<String, dynamic>? parameters}) {
     parameters ??= <String, dynamic>{};
@@ -103,5 +108,37 @@ abstract class RpcClient {
       throw PiwigoException(response);
     }
     return obj;
+  }
+
+  Future<void> login({CancelToken? cancelToken}) async {
+    try {
+      final resp = await dio.post(
+        path,
+        queryParameters: queryParameters('pwg.session.login'),
+        data: <String, dynamic>{
+          'username': name,
+          'password': password,
+        },
+        options: Options(
+          headers: <String, dynamic>{
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+        ),
+        cancelToken: cancelToken,
+      );
+      decodeResponse(resp.data);
+      last = DateTime.now();
+      debugPrint("login at $last");
+    } on DioError catch (e) {
+      throw Exception('${e.message} ${e.response?.data}');
+    }
+  }
+
+  Future<void> checkLogin({CancelToken? cancelToken}) async {
+    if (last == null) {
+      await login(cancelToken: cancelToken);
+    } else if (DateTime.now().difference(last!) > const Duration(minutes: 30)) {
+      await login(cancelToken: cancelToken);
+    }
   }
 }

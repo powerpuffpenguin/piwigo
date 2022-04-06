@@ -201,6 +201,7 @@ mixin Categories on RpcClient {
     CancelToken? cancelToken,
   }) async {
     try {
+      await checkLogin(cancelToken: cancelToken);
       final resp = await dio.get(
         path,
         queryParameters: queryParameters(
@@ -238,6 +239,7 @@ mixin Categories on RpcClient {
     CancelToken? cancelToken,
   }) async {
     try {
+      await checkLogin(cancelToken: cancelToken);
       final resp = await dio.get(
         path,
         queryParameters: queryParameters(

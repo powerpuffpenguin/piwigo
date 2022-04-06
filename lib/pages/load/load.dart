@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:piwigo/db/db.dart';
 import 'package:piwigo/db/settings.dart';
+import 'package:piwigo/db/video.dart';
 import 'package:piwigo/environment.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/home/home.dart';
@@ -31,6 +32,8 @@ class _MyLoadPageState extends UIState<MyLoadPage> {
       _error = null;
     });
     try {
+      await MyVideo.instance.load();
+
       final id = await MySettings.instance.getAccount();
       checkAlive();
       final helper = (await DB.helpers).account;

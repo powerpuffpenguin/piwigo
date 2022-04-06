@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:king011_icons/king011_icons.dart';
 import 'package:piwigo/db/data/account.dart';
 import 'package:piwigo/db/db.dart';
@@ -29,7 +30,7 @@ class _MyAddPageState extends MyState<MyAddPage> {
   final _nameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  final _form = GlobalKey();
+  final _form = GlobalKey<FormState>();
   var _visibility = false;
   dynamic _error;
   final _cancelToken = CancelToken();
@@ -126,13 +127,17 @@ class _MyAddPageState extends MyState<MyAddPage> {
     }
   }
 
-  _onSelect(MyFocusNode focused) {
+  _onSelect(MyFocusNode focused, KeyEvent evt) {
     if (focused.isArrowBack) {
       Navigator.of(context).pop();
     } else if (focused.id == 'url') {
-      nextFocus('name');
+      if (evt.logicalKey == LogicalKeyboardKey.select) {
+        nextFocus('name');
+      }
     } else if (focused.id == 'name') {
-      nextFocus('password');
+      if (evt.logicalKey == LogicalKeyboardKey.select) {
+        nextFocus('password');
+      }
     } else if (focused.id == 'password') {
       setState(() {
         _visibility = !_visibility;
@@ -145,12 +150,15 @@ class _MyAddPageState extends MyState<MyAddPage> {
     return MyKeyboardListener(
       focusNode: createFocusNode('MyKeyboardListener'),
       child: _build(context),
-      onSelected: () {
-        final focused = focusedNode();
-        if (focused == null) {
-          return;
+      onKeyTab: (evt) {
+        if (evt.logicalKey == LogicalKeyboardKey.select ||
+            evt.logicalKey == LogicalKeyboardKey.enter) {
+          final focused = focusedNode();
+          if (focused == null) {
+            return;
+          }
+          _onSelect(focused, evt);
         }
-        _onSelect(focused);
       },
     );
   }

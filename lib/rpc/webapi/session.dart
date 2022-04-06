@@ -3,28 +3,6 @@ import 'package:dio/dio.dart';
 import './rpc.dart';
 
 mixin Session on RpcClient {
-  Future<void> login({CancelToken? cancelToken}) async {
-    try {
-      final resp = await dio.post(
-        path,
-        queryParameters: queryParameters('pwg.session.login'),
-        data: <String, dynamic>{
-          'username': name,
-          'password': password,
-        },
-        options: Options(
-          headers: <String, dynamic>{
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-        ),
-        cancelToken: cancelToken,
-      );
-      decodeResponse(resp.data);
-    } on DioError catch (e) {
-      throw Exception('${e.message} ${e.response?.data}');
-    }
-  }
-
   Future<Status> getStatus({
     CancelToken? cancelToken,
   }) async {

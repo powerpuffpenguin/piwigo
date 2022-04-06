@@ -66,7 +66,11 @@ abstract class MyState<T extends StatefulWidget> extends UIState<T> {
   }
 
   @protected
-  Widget? backOfAppBar(BuildContext context, {dynamic data}) {
+  Widget? backOfAppBar(
+    BuildContext context, {
+    dynamic data,
+    bool disabled = false,
+  }) {
     final ModalRoute<dynamic>? parentRoute = ModalRoute.of(context);
     final bool canPop = parentRoute?.canPop ?? false;
     if (!canPop) {
@@ -81,7 +85,7 @@ abstract class MyState<T extends StatefulWidget> extends UIState<T> {
         ),
         icon: const Icon(Icons.arrow_back),
         iconSize: 24,
-        onPressed: () => Navigator.of(context).pop(),
+        onPressed: disabled ? null : () => Navigator.of(context).pop(),
         tooltip: MaterialLocalizations.of(context).backButtonTooltip,
       ),
     );
