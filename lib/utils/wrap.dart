@@ -29,4 +29,9 @@ class MyWrap {
     required this.rows,
     required this.fit,
   });
+
+  int calculateRow(int index) {
+    assert(index >= 0);
+    return (index /*+1*/ + cols /*-1*/) ~/ cols - 1;
+  }
 }

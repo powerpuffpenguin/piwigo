@@ -73,6 +73,8 @@ class _MyViewPageState extends MyState<MyViewPage> {
     super.dispose();
   }
 
+  String getImageID(String id) => 'image_of_$id';
+
   _init() async {
     setState(() {
       _error = null;
@@ -156,13 +158,57 @@ class _MyViewPageState extends MyState<MyViewPage> {
           );
         },
       ),
-    );
+    ).then((value) {
+      if (isNotClosed) {
+        final i = _swiperController.value;
+        if (i >= 0 && i < _source.list.length) {
+          final node = _source.list[i];
+          final focus = getFocusNode(getImageID(node.id))?.focusNode;
+          if (focus?.canRequestFocus ?? false) {
+            _scrollTo(i);
+            focusScopeNode
+              ..unfocus()
+              ..requestFocus();
+            focus!.requestFocus();
+          }
+        }
+      }
+    });
   }
 
+  _scrollTo(int i) {
+    final size = MediaQuery.of(context).size;
+    double jumpTo = 0;
+    if (_categories.isNotEmpty) {
+      final wrap = MyCover.calculateWrap(size, spacing, _categories.length);
+      jumpTo = wrap.rows * (wrap.height + spacing);
+    }
+    bool portrait = size.width < size.height;
+    final wrap = portrait
+        ? MyImage.calculateWrap(size, spacing, _source.list.length, count: 3)
+        : MyImage.calculateWrap(size, spacing, _source.list.length, count: 6);
+    final row = wrap.calculateRow(i);
+    final max = jumpTo + wrap.height * row;
+    final height = size.height - toolbarHeight - 20; // - appbar
+    final rows = height / wrap.height; // rows of screen
+    var min = max - wrap.height * (rows - 1);
+    if (min < 0) {
+      min = 0;
+    }
+    var offset = _scrollController.offset;
+    if (offset < min) {
+      _scrollController.jumpTo(min);
+    } else if (offset > max) {
+      _scrollController.jumpTo(max);
+    }
+  }
+
+  static const toolbarHeight = 50.0;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: toolbarHeight,
         leading: FocusScope(
           node: focusScopeNode,
           child: IconButton(
@@ -228,14 +274,15 @@ class _MyViewPageState extends MyState<MyViewPage> {
     return null;
   }
 
+  final _scrollController = ScrollController();
+  static const spacing = 8.0;
   Widget _buildBody(BuildContext context) {
     if (_source.list.isEmpty && _categories.isEmpty) {
       return Container();
     }
     return OrientationBuilder(builder: (context, orientation) {
       final size = MediaQuery.of(context).size;
-      const spacing = 8.0;
-      bool portrait = orientation == Orientation.portrait;
+      bool portrait = size.width < size.height;
       final wrapImages = portrait
           ? MyImage.calculateWrap(size, spacing, _source.list.length, count: 3)
           : MyImage.calculateWrap(size, spacing, _source.list.length, count: 6);
@@ -243,6 +290,7 @@ class _MyViewPageState extends MyState<MyViewPage> {
           MyCover.calculateWrap(size, spacing, _categories.length);
       var count = wrapImages.rows + wrapCategories.rows + 1;
       return ListView.builder(
+        controller: _scrollController,
         itemCount: count,
         itemBuilder: (context, index) {
           if (count == index + 1) {
@@ -365,7 +413,7 @@ class _MyViewPageState extends MyState<MyViewPage> {
             width: wrap.width,
             height: wrap.height,
             focusNode: createFocusNode(
-              'image_of_${node.id}',
+              getImageID(node.id),
               data: MySelectAction(
                 what: MyActionType.openFullscreen,
                 data: i,
