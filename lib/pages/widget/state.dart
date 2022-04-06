@@ -39,11 +39,20 @@ abstract class MyState<T extends StatefulWidget> extends UIState<T> {
     return add.focusNode;
   }
 
+  @protected
   MyFocusNode? focusedNode() {
     if (focusScopeNode.hasFocus) {
       return _focusNodeKeys[focusScopeNode.focusedChild];
     }
     return null;
+  }
+
+  @protected
+  void nextFocus(String id) {
+    final focus = _keysFocusNode[id]?.focusNode;
+    if (focus?.canRequestFocus ?? false) {
+      focus!.requestFocus();
+    }
   }
 
   @mustCallSuper

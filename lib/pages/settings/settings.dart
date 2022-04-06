@@ -64,6 +64,10 @@ class _MySettingsPageState extends MyState<MySettingsPage> {
     Navigator.of(context).pushNamed(MyRoutes.settingsTheme);
   }
 
+  void _openVideo() {
+    Navigator.of(context).pushNamed(MyRoutes.settingsVideo);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MyKeyboardListener(
@@ -82,6 +86,9 @@ class _MySettingsPageState extends MyState<MySettingsPage> {
                   break;
                 case 'theme':
                   _openTheme();
+                  break;
+                case 'video':
+                  _openVideo();
                   break;
               }
             },
@@ -120,6 +127,15 @@ class _MySettingsPageState extends MyState<MySettingsPage> {
                   ? Text(S.of(context).settings.systemDefault)
                   : Text(_theme!),
               onTap: _openTheme,
+            ),
+          ),
+          FocusScope(
+            node: focusScopeNode,
+            child: ListTile(
+              focusNode: createFocusNode('video'),
+              leading: const Icon(Icons.video_settings),
+              title: Text(S.of(context).settingsVideo.title),
+              onTap: _openVideo,
             ),
           ),
         ],

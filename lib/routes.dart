@@ -10,6 +10,7 @@ class MyRoutes {
   static const String settings = "/settings";
   static const String settingsLanguage = "/settings/language";
   static const String settingsTheme = "/settings/theme";
+  static const String settingsVideo = "/settings/video";
 
   static const String account = "/account";
 

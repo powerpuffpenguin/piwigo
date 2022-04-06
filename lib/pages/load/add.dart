@@ -7,9 +7,10 @@ import 'package:piwigo/db/settings.dart';
 import 'package:piwigo/environment.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/home/home.dart';
+import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
 import 'package:piwigo/pages/widget/spin.dart';
+import 'package:piwigo/pages/widget/state.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
-import 'package:ppg_ui/ppg_ui.dart';
 
 class MyAddPage extends StatefulWidget {
   const MyAddPage({
@@ -23,13 +24,11 @@ class MyAddPage extends StatefulWidget {
   _MyAddPageState createState() => _MyAddPageState();
 }
 
-class _MyAddPageState extends UIState<MyAddPage> {
+class _MyAddPageState extends MyState<MyAddPage> {
   final _urlController = TextEditingController();
   final _nameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _urlFocus = FocusNode();
-  final _nameFocus = FocusNode();
-  final _passwordFocus = FocusNode();
+
   final _form = GlobalKey();
   var _visibility = false;
   dynamic _error;
@@ -43,15 +42,15 @@ class _MyAddPageState extends UIState<MyAddPage> {
       _passwordController.text = widget.account!.password;
     }
     if (_urlController.text == '') {
-      _urlFocus.requestFocus();
+      final focus = createFocusNode('url');
+      if (focus.canRequestFocus) {
+        focus.requestFocus();
+      }
     }
   }
 
   @override
   void dispose() {
-    _urlFocus.dispose();
-    _nameFocus.dispose();
-    _passwordFocus.dispose();
     _cancelToken.cancel();
     super.dispose();
   }
@@ -127,10 +126,39 @@ class _MyAddPageState extends UIState<MyAddPage> {
     }
   }
 
+  _onSelect(MyFocusNode focused) {
+    if (focused.isArrowBack) {
+      Navigator.of(context).pop();
+    } else if (focused.id == 'url') {
+      nextFocus('name');
+    } else if (focused.id == 'name') {
+      nextFocus('password');
+    } else if (focused.id == 'password') {
+      setState(() {
+        _visibility = !_visibility;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    return MyKeyboardListener(
+      focusNode: createFocusNode('MyKeyboardListener'),
+      child: _build(context),
+      onSelected: () {
+        final focused = focusedNode();
+        if (focused == null) {
+          return;
+        }
+        _onSelect(focused);
+      },
+    );
+  }
+
+  Widget _build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: backOfAppBar(context),
         title: Text(widget.account == null
             ? S.of(context).account.add
             : S.of(context).account.edit),
@@ -139,45 +167,58 @@ class _MyAddPageState extends UIState<MyAddPage> {
         key: _form,
         child: ListView(
           children: [
-            TextFormField(
-              enabled: enabled,
-              controller: _urlController,
-              focusNode: _urlFocus,
-              keyboardType: TextInputType.url,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(MaterialCommunityIcons.server),
-                label: Text(S.of(context).account.url),
+            FocusScope(
+              node: focusScopeNode,
+              child: TextFormField(
+                enabled: enabled,
+                controller: _urlController,
+                focusNode: createFocusNode('url'),
+                keyboardType: TextInputType.url,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(MaterialCommunityIcons.server),
+                  label: Text(S.of(context).account.url),
+                ),
+                onEditingComplete: () {
+                  nextFocus('name');
+                },
               ),
-              onEditingComplete: () => _nameFocus.requestFocus(),
             ),
-            TextFormField(
-              enabled: enabled,
-              controller: _nameController,
-              focusNode: _nameFocus,
-              keyboardType: TextInputType.name,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.account_circle),
-                label: Text(S.of(context).account.name),
+            FocusScope(
+              node: focusScopeNode,
+              child: TextFormField(
+                enabled: enabled,
+                controller: _nameController,
+                focusNode: createFocusNode('name'),
+                keyboardType: TextInputType.name,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.account_circle),
+                  label: Text(S.of(context).account.name),
+                ),
+                onEditingComplete: () {
+                  nextFocus('password');
+                },
               ),
-              onEditingComplete: () => _passwordFocus.requestFocus(),
             ),
-            TextFormField(
-              enabled: enabled,
-              controller: _passwordController,
-              focusNode: _passwordFocus,
-              keyboardType: TextInputType.visiblePassword,
-              obscureText: !_visibility,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.password),
-                label: Text(S.of(context).account.password),
-                suffix: IconButton(
-                    onPressed: () =>
-                        aliveSetState(() => _visibility = !_visibility),
-                    icon: _visibility
-                        ? const Icon(Icons.visibility)
-                        : const Icon(Icons.visibility_off)),
+            FocusScope(
+              node: focusScopeNode,
+              child: TextFormField(
+                enabled: enabled,
+                controller: _passwordController,
+                focusNode: createFocusNode('password'),
+                keyboardType: TextInputType.visiblePassword,
+                obscureText: !_visibility,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.password),
+                  label: Text(S.of(context).account.password),
+                  suffix: IconButton(
+                      onPressed: () =>
+                          aliveSetState(() => _visibility = !_visibility),
+                      icon: _visibility
+                          ? const Icon(Icons.visibility)
+                          : const Icon(Icons.visibility_off)),
+                ),
+                onEditingComplete: _submit,
               ),
-              onEditingComplete: _submit,
             ),
             _error == null
                 ? Container()

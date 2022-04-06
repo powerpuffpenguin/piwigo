@@ -29,3 +29,24 @@ class SettingsLanguage {
         desc: '頁面標題 : 語言設定',
       );
 }
+
+class SettingsVideo {
+  const SettingsVideo();
+
+  String get title => Intl.message(
+        'SettingsVideo.title',
+        desc: '頁面標題 : 視頻設定',
+      );
+  String get reverse => Intl.message(
+        'SettingsVideo.reverse',
+        desc: '反轉寬高比',
+      );
+  String get scale => Intl.message(
+        'SettingsVideo.scale',
+        desc: '縮放',
+      );
+  String get rotate => Intl.message(
+        'SettingsVideo.rotate',
+        desc: '旋轉',
+      );
+}

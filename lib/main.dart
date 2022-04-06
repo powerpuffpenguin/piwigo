@@ -11,6 +11,7 @@ import 'package:piwigo/pages/load/load.dart';
 import 'package:piwigo/pages/settings/language.dart';
 import 'package:piwigo/pages/settings/settings.dart';
 import 'package:piwigo/pages/settings/theme.dart';
+import 'package:piwigo/pages/settings/video.dart';
 import 'package:piwigo/routes.dart';
 import 'package:ppg_ui/ppg_ui.dart';
 
@@ -110,6 +111,7 @@ class _MyAppState extends UIState<MyApp> {
         MyRoutes.settings: (context) => const MySettingsPage(),
         MyRoutes.settingsLanguage: (context) => const MySettingsLanguagePage(),
         MyRoutes.settingsTheme: (context) => const MySettingsThemePage(),
+        MyRoutes.settingsVideo: (context) => const MySettingsVideoPage(),
       },
     );
   }
