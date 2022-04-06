@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:piwigo/db/language.dart';
 import 'package:piwigo/db/theme.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
+import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
+import 'package:piwigo/pages/widget/state.dart';
 import 'package:piwigo/routes.dart';
-import 'package:ppg_ui/ppg_ui.dart';
 
 class MySettingsPage extends StatefulWidget {
   const MySettingsPage({
@@ -13,7 +14,7 @@ class MySettingsPage extends StatefulWidget {
   _MySettingsPageState createState() => _MySettingsPageState();
 }
 
-class _MySettingsPageState extends UIState<MySettingsPage> {
+class _MySettingsPageState extends MyState<MySettingsPage> {
   Language? _language;
   String? _theme;
 
@@ -55,32 +56,71 @@ class _MySettingsPageState extends UIState<MySettingsPage> {
     return supported[name];
   }
 
+  void _openLanguage() {
+    Navigator.of(context).pushNamed(MyRoutes.settingsLanguage);
+  }
+
+  void _openTheme() {
+    Navigator.of(context).pushNamed(MyRoutes.settingsTheme);
+  }
+
   @override
   Widget build(BuildContext context) {
+    return MyKeyboardListener(
+      focusNode: createFocusNode('MyKeyboardListener'),
+      child: _build(context),
+      onSelected: disabled
+          ? null
+          : () {
+              final id = focusedNode()?.id ?? '';
+              switch (id) {
+                case 'arrow_back':
+                  Navigator.of(context).pop();
+                  break;
+                case 'language':
+                  _openLanguage();
+                  break;
+                case 'theme':
+                  _openTheme();
+                  break;
+              }
+            },
+    );
+  }
+
+  Widget _build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: backOfAppBar(context),
         title: Text(S.of(context).settings.title),
       ),
       body: ListView(
         children: <Widget>[
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: Text(S.of(context).settings.language),
-            subtitle: _language == null
-                ? Text(S.of(context).settings.systemDefault)
-                : Text(_language!.name),
-            trailing: _language == null ? null : Text(_language!.description),
-            onTap: () =>
-                Navigator.of(context).pushNamed(MyRoutes.settingsLanguage),
+          FocusScope(
+            autofocus: true,
+            node: focusScopeNode,
+            child: ListTile(
+              focusNode: createFocusNode('language'),
+              leading: const Icon(Icons.language),
+              title: Text(S.of(context).settings.language),
+              subtitle: _language == null
+                  ? Text(S.of(context).settings.systemDefault)
+                  : Text(_language!.name),
+              trailing: _language == null ? null : Text(_language!.description),
+              onTap: _openLanguage,
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.style),
-            title: Text(S.of(context).settings.theme),
-            subtitle: _theme == null
-                ? Text(S.of(context).settings.systemDefault)
-                : Text(_theme!),
-            onTap: () =>
-                Navigator.of(context).pushNamed(MyRoutes.settingsTheme),
+          FocusScope(
+            node: focusScopeNode,
+            child: ListTile(
+              focusNode: createFocusNode('theme'),
+              leading: const Icon(Icons.style),
+              title: Text(S.of(context).settings.theme),
+              subtitle: _theme == null
+                  ? Text(S.of(context).settings.systemDefault)
+                  : Text(_theme!),
+              onTap: _openTheme,
+            ),
           ),
         ],
       ),

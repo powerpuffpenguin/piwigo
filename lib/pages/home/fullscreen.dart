@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:piwigo/environment.dart';
 import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
 import 'package:piwigo/pages/widget/photo_view.dart';
 import 'package:piwigo/pages/widget/swiper/swiper.dart';
@@ -22,9 +21,9 @@ class MyFullscreenPage extends StatefulWidget {
 }
 
 class _MyFullscreenPageState extends State<MyFullscreenPage> {
-  bool _showController = false;
   final _focusNode = FocusNode();
   final _subject = PublishSubject<KeyEvent>();
+  final _showController = ValueNotifier<bool>(false);
   @override
   void initState() {
     super.initState();
@@ -45,34 +44,60 @@ class _MyFullscreenPageState extends State<MyFullscreenPage> {
 
   @override
   Widget build(BuildContext context) {
+    return WillPopScope(
+        child: _build(context),
+        onWillPop: () {
+          if (_showController.value) {
+            _showController.value = false;
+            return Future.value(false);
+          }
+          return Future.value(true);
+        });
+  }
+
+  Widget _build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: MyEnvironment.isProduct
-          ? null
-          : FloatingActionButton(onPressed: () {
-              _subject.add(const MyKeyEvent(
-                physicalKey: PhysicalKeyboardKey.abort,
-                logicalKey: LogicalKeyboardKey.arrowDown,
-                timeStamp: Duration(seconds: 1),
-              ));
-            }),
+      // floatingActionButton: MyEnvironment.isProduct
+      //     ? null
+      //     : FloatingActionButton(onPressed: () {
+      //         _subject.add(const MyKeyEvent(
+      //           physicalKey: PhysicalKeyboardKey.abort,
+      //           logicalKey: LogicalKeyboardKey.arrowDown,
+      //           timeStamp: Duration(seconds: 1),
+      //         ));
+      //       }),
       body: MyKeyboardListener(
         focusNode: _focusNode,
         autofocus: true,
         onKeyTab: (evt) {
-          _subject.add(evt);
+          if (_showController.value) {
+            if (evt.logicalKey == LogicalKeyboardKey.escape) {
+              _showController.value = false;
+            } else {
+              _subject.add(evt);
+            }
+            return;
+          }
           if (evt.logicalKey == LogicalKeyboardKey.arrowLeft) {
-            if (!_showController) {
-              final val = widget.controller.value - 1;
+            final val = widget.controller.value - 1;
+            if (val > -1) {
               widget.controller.swipeTo(val);
             }
           } else if (evt.logicalKey == LogicalKeyboardKey.arrowRight) {
-            if (!_showController) {
-              final val = widget.controller.value + 1;
+            final val = widget.controller.value + 1;
+            if (val < widget.source.length) {
               widget.controller.swipeTo(val);
             }
+          } else if (evt.logicalKey == LogicalKeyboardKey.escape) {
+            Navigator.of(context).pop();
+          } else if (evt.logicalKey == LogicalKeyboardKey.select ||
+              evt.logicalKey == LogicalKeyboardKey.enter) {
+            _showController.value = true;
+          } else {
+            _subject.add(evt);
           }
         },
-        builder: (context) => Swiper(
+        child: Swiper(
           controller: widget.controller,
           itemCount: widget.source.length,
           itemBuilder: (context, details) {
@@ -84,10 +109,7 @@ class _MyFullscreenPageState extends State<MyFullscreenPage> {
               controller: widget.controller,
               count: widget.source.length,
               swipe: details.swipe,
-              initShowController: _showController,
-              onShowController: (v) {
-                _showController = v;
-              },
+              showController: _showController,
             );
           },
         ),

@@ -10,8 +10,23 @@ class MyKeyboardListener extends StatefulWidget {
     this.onKeyEvent,
     this.onKeyTab,
     this.onSelected,
-    required this.builder,
-  }) : super(key: key);
+    required Widget child,
+  })  : widgetBuilder = null,
+        widget = child,
+        super(key: key);
+
+  const MyKeyboardListener.builder({
+    Key? key,
+    required this.focusNode,
+    this.autofocus = false,
+    this.includeSemantics = true,
+    this.onKeyEvent,
+    this.onKeyTab,
+    this.onSelected,
+    required WidgetBuilder builder,
+  })  : widgetBuilder = builder,
+        widget = null,
+        super(key: key);
 
   /// Controls whether this widget has keyboard focus.
   final FocusNode focusNode;
@@ -26,7 +41,8 @@ class MyKeyboardListener extends StatefulWidget {
   final ValueChanged<KeyEvent>? onKeyEvent;
   final ValueChanged<KeyEvent>? onKeyTab;
   final VoidCallback? onSelected;
-  final WidgetBuilder builder;
+  final WidgetBuilder? widgetBuilder;
+  final Widget? widget;
   @override
   _MyKeyboardListenerState createState() => _MyKeyboardListenerState();
 }
@@ -47,7 +63,8 @@ class _MyKeyboardListenerState extends State<MyKeyboardListener> {
             widget.onKeyTab!(evt);
           }
           if (widget.onSelected != null &&
-              evt.logicalKey == LogicalKeyboardKey.select) {
+              (evt.logicalKey == LogicalKeyboardKey.select ||
+                  evt.logicalKey == LogicalKeyboardKey.enter)) {
             widget.onSelected!();
           }
         }
@@ -67,7 +84,7 @@ class _MyKeyboardListenerState extends State<MyKeyboardListener> {
               widget.onSelected != null)
           ? _onKeyEvent
           : null,
-      child: widget.builder(context),
+      child: widget.widget ?? widget.widgetBuilder!(context),
     );
   }
 }

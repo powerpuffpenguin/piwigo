@@ -25,8 +25,7 @@ class MyPhotoView extends StatefulWidget {
     required this.controller,
     required this.count,
     required this.swipe,
-    required this.initShowController,
-    required this.onShowController,
+    required this.showController,
     required this.isVideo,
     required this.stream,
   }) : super(key: key);
@@ -35,8 +34,7 @@ class MyPhotoView extends StatefulWidget {
   final SwiperController controller;
   final int count;
   final bool swipe;
-  final bool initShowController;
-  final ValueChanged<bool> onShowController;
+  final ValueNotifier<bool> showController;
   final bool isVideo;
   @override
   _MyPhotoViewState createState() => _MyPhotoViewState();
@@ -51,7 +49,8 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
   @override
   void initState() {
     super.initState();
-    _showController = widget.initShowController;
+    _showController = widget.showController.value;
+    widget.showController.addListener(_showControllerListener);
 
     if (widget.isVideo && isSupportedVideo()) {
       addSubscription(PlayerManage.instance.stream.listen((event) {
@@ -79,10 +78,20 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
 
   @override
   void dispose() {
+    widget.showController.removeListener(_showControllerListener);
     if (_create && (_player?.controller.value.isInitialized ?? false)) {
       _player!.controller.pause();
     }
     super.dispose();
+  }
+
+  _showControllerListener() {
+    final val = widget.showController.value;
+    if (val != _showController) {
+      setState(() {
+        _showController = val;
+      });
+    }
   }
 
   _initPlayer() async {
@@ -174,10 +183,7 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
     }
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _showController = !_showController;
-          widget.onShowController(_showController);
-        });
+        widget.showController.value = !widget.showController.value;
       },
       onDoubleTap: () {
         Navigator.of(context).pop();
@@ -244,10 +250,7 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
   ) {
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _showController = !_showController;
-          widget.onShowController(_showController);
-        });
+        widget.showController.value = !widget.showController.value;
       },
       onDoubleTap: () {
         Navigator.of(context).pop();
@@ -263,6 +266,7 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
                 image: widget.image,
                 controller: controller,
                 stream: widget.stream,
+                showController: _showController,
               ),
               // child: AspectRatio(
               //   aspectRatio: controller.value.aspectRatio,
@@ -577,10 +581,12 @@ class _VideoPlayer extends StatefulWidget {
     required this.image,
     required this.stream,
     required this.controller,
+    required this.showController,
   }) : super(key: key);
   final PageImage image;
   final Stream<KeyEvent> stream;
   final VideoPlayerController controller;
+  final bool showController;
   @override
   _VideoPlayerState createState() => _VideoPlayerState();
 }
@@ -591,7 +597,11 @@ class _VideoPlayerState extends UIState<_VideoPlayer> {
     super.initState();
 
     addSubscription(widget.stream.listen((evt) {
-      if (evt.logicalKey == LogicalKeyboardKey.select) {
+      if (!widget.showController) {
+        return;
+      }
+      if (evt.logicalKey == LogicalKeyboardKey.select ||
+          evt.logicalKey == LogicalKeyboardKey.enter) {
         final controller = widget.controller;
         if (controller.value.isInitialized) {
           if (controller.value.isPlaying) {
@@ -600,80 +610,73 @@ class _VideoPlayerState extends UIState<_VideoPlayer> {
             controller.play();
           }
         }
+      } else if (evt.logicalKey == LogicalKeyboardKey.arrowLeft) {
+        if (_scaled < 50) {
+          aliveSetState(() {
+            _scaled++;
+          });
+        }
+      } else if (evt.logicalKey == LogicalKeyboardKey.arrowRight) {
+        if (_scaled > -50) {
+          aliveSetState(() {
+            _scaled--;
+          });
+        }
       } else if (evt.logicalKey == LogicalKeyboardKey.arrowUp) {
         aliveSetState(() {
-          scaled++;
+          _aspectRatio = !_aspectRatio;
         });
       } else if (evt.logicalKey == LogicalKeyboardKey.arrowDown) {
-        if (rotate < 3) {
+        if (_rotate < 3) {
           aliveSetState(() {
-            rotate++;
+            _rotate++;
           });
         } else {
           aliveSetState(() {
-            rotate = 0;
+            _rotate = 0;
           });
         }
       }
     }));
   }
 
-  int rotate = 0;
-  int scaled = 0;
+  int _rotate = 0;
+  int _scaled = 0;
+  bool _aspectRatio = true;
   @override
   Widget build(BuildContext context) {
-    if (rotate == 0) {
-      return AspectRatio(
-        aspectRatio: widget.controller.value.aspectRatio,
-        child: VideoPlayer(widget.controller),
-      );
-    }
-    // // 調整一些 android tv 屏幕顛倒
-    // final size = MediaQuery.of(context).size;
-    // var width = size.width;
-    // var height = size.height;
-    // var w = width;
-    // var h = widget.image.height * w / widget.image.width;
-    // if (h > height) {
-    //   h = height;
-    //   w = widget.image.width * h / widget.image.height;
-    // }
+    return _buildScale(context);
+  }
+
+  Widget _buildScale(BuildContext context) {
+    final scaled = _scaled;
     if (scaled == 0) {
-      return Transform.rotate(
-        angle: pi / 2 * rotate,
-        child: AspectRatio(
-          aspectRatio: widget.controller.value.aspectRatio,
-          child: VideoPlayer(widget.controller),
-        ),
-      );
+      return _buildRotate(context);
     }
-    final size = MediaQuery.of(context).size;
-    final box = min(size.width, size.height);
     return Transform.scale(
-      scale: (50 + scaled) / 50,
-      child: Transform.rotate(
-        angle: pi / 2 * rotate,
-        child: SizedBox(
-          width: box,
-          height: box,
-          child: AspectRatio(
-            aspectRatio: widget.controller.value.aspectRatio,
-            child: VideoPlayer(widget.controller),
-          ),
-        ),
-      ),
+      scale: (100 + scaled) / 100,
+      child: _buildRotate(context),
     );
   }
 
-  Widget _buildBody(BuildContext context, double width, double height) {
+  Widget _buildRotate(BuildContext context) {
+    final rotate = _rotate;
+    if (rotate == 0) {
+      return _buildVideo(context);
+    }
+    return Transform.rotate(
+      angle: pi / 2 * rotate,
+      child: _buildVideo(context),
+    );
+  }
+
+  Widget _buildVideo(BuildContext context) {
+    final aspectRatio = _aspectRatio
+        ? widget.controller.value.aspectRatio
+        : 1 / widget.controller.value.aspectRatio;
     return AspectRatio(
-      aspectRatio: widget.image.height / widget.image.width,
+      aspectRatio: aspectRatio,
       child: VideoPlayer(widget.controller),
     );
-    // return SizedBox(
-    //   width: width,
-    //   height: height,
-    //   child: VideoPlayer(widget.controller),
-    // );
   }
 }

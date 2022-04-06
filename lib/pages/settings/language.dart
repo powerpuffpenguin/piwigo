@@ -4,8 +4,9 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:piwigo/db/language.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
+import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
 import 'package:piwigo/pages/widget/spin.dart';
-import 'package:ppg_ui/ppg_ui.dart';
+import 'package:piwigo/pages/widget/state.dart';
 
 class MySettingsLanguagePage extends StatefulWidget {
   const MySettingsLanguagePage({
@@ -15,7 +16,7 @@ class MySettingsLanguagePage extends StatefulWidget {
   _MySettingsLanguagePageState createState() => _MySettingsLanguagePageState();
 }
 
-class _MySettingsLanguagePageState extends UIState<MySettingsLanguagePage> {
+class _MySettingsLanguagePageState extends MyState<MySettingsLanguagePage> {
   String? _language;
   @override
   void initState() {
@@ -29,29 +30,78 @@ class _MySettingsLanguagePageState extends UIState<MySettingsLanguagePage> {
     }));
   }
 
+  _selected(Language? language) async {
+    if (disabled || _language == language?.name) {
+      return;
+    }
+    setState(() {
+      disabled = true;
+    });
+    try {
+      if (language == null) {
+        await MyLanguage().clear();
+      } else {
+        await MyLanguage().save(language.name);
+      }
+    } catch (e) {
+      BotToast.showText(text: '$e');
+    } finally {
+      setState(() {
+        disabled = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () => Future.value(enabled),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(S.of(context).settingsLanguage.title),
-        ),
-        body: Builder(
-          builder: (context) => ListView(
-            children: supportedLanguage
-                .map<Widget>((v) => _buildListTile(context, v))
-                .toList()
-              ..insert(0, _buildListTile(context, null)),
-          ),
-        ),
-        floatingActionButton: disabled ? createSpinFloating() : null,
+      child: MyKeyboardListener(
+        focusNode: createFocusNode('MyKeyboardListener'),
+        child: _build(context),
+        onSelected: () {
+          final focused = focusedNode();
+          if (focused == null) {
+            return;
+          }
+          if (focused.isArrowBack) {
+            Navigator.of(context).pop();
+            return;
+          }
+          _selected(focused.data);
+        },
       ),
     );
   }
 
-  Widget _buildListTile(BuildContext context, Language? language) {
+  Widget _build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: backOfAppBar(context),
+        title: Text(S.of(context).settingsLanguage.title),
+      ),
+      body: ListView.builder(
+        itemCount: supportedLanguage.length + 1,
+        itemBuilder: (context, i) {
+          final child = _buildListTile(
+            context,
+            i.toString(),
+            i == 0 ? null : supportedLanguage[i - 1],
+          );
+          return FocusScope(
+            autofocus: true,
+            node: focusScopeNode,
+            child: child,
+          );
+        },
+      ),
+      floatingActionButton: disabled ? createSpinFloating() : null,
+    );
+  }
+
+  Widget _buildListTile(BuildContext context, String id, Language? language) {
     return ListTile(
+      focusNode: createFocusNode(id, data: language),
       leading: _language == language?.name
           ? Icon(
               Icons.check_circle,
@@ -62,25 +112,10 @@ class _MySettingsLanguagePageState extends UIState<MySettingsLanguagePage> {
         language == null ? S.of(context).settings.systemDefault : language.name,
       ),
       trailing: language == null ? null : Text(language.description),
-      onTap: disabled || _language == language?.name
+      onTap: disabled
           ? null
-          : () async {
-              setState(() {
-                disabled = true;
-              });
-              try {
-                if (language == null) {
-                  await MyLanguage().clear();
-                } else {
-                  await MyLanguage().save(language.name);
-                }
-              } catch (e) {
-                BotToast.showText(text: '$e');
-              } finally {
-                setState(() {
-                  disabled = false;
-                });
-              }
+          : () {
+              _selected(language);
             },
     );
   }

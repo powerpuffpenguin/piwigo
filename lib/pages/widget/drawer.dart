@@ -6,9 +6,19 @@ import 'package:flutter/gestures.dart';
 import 'package:piwigo/environment.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/dev/dev.dart';
+import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
+import 'package:piwigo/pages/widget/state.dart';
 import 'package:piwigo/routes.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+enum _ActionType {
+  backup,
+  settings,
+  account,
+  help,
+  about,
+}
 
 class MyDrawerView extends StatefulWidget {
   const MyDrawerView({
@@ -29,7 +39,7 @@ class MyDrawerView extends StatefulWidget {
   _MyDrawerViewState createState() => _MyDrawerViewState();
 }
 
-class _MyDrawerViewState extends State<MyDrawerView> {
+class _MyDrawerViewState extends MyState<MyDrawerView> {
   final tapGestureRecognizer0 = TapGestureRecognizer();
   final tapGestureRecognizer1 = TapGestureRecognizer();
   Client get client => widget.client;
@@ -66,7 +76,7 @@ class _MyDrawerViewState extends State<MyDrawerView> {
     );
   }
 
-  _showAbout() {
+  void _openAbout() {
     final TextStyle? textStyle = Theme.of(context).textTheme.bodyText1;
     final children = <Widget>[
       _richTextUrl(
@@ -98,8 +108,64 @@ class _MyDrawerViewState extends State<MyDrawerView> {
     );
   }
 
+  void _openSettings() {
+    Navigator.of(context).pushNamed(
+      MyRoutes.settings,
+    );
+  }
+
+  void _openAccount() {
+    Navigator.of(context).pushNamed(
+      MyRoutes.account,
+    );
+  }
+
+  void _openHelp() async {
+    try {
+      const url = 'https://github.com/powerpuffpenguin/piwigo/issues';
+      debugPrint('launch $url');
+      await launch(url);
+    } catch (e) {
+      BotToast.showText(text: '$e');
+    }
+  }
+
+  void _backup() {
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
+    return MyKeyboardListener(
+      onSelected: () {
+        final data = focusedNode()?.data;
+        if (data is _ActionType) {
+          switch (data) {
+            case _ActionType.settings:
+              _openSettings();
+              break;
+            case _ActionType.account:
+              _openAccount();
+              break;
+            case _ActionType.help:
+              _openHelp();
+              break;
+            case _ActionType.about:
+              _openAbout();
+              break;
+            case _ActionType.backup:
+              _backup();
+              break;
+          }
+        }
+      },
+      focusNode: createFocusNode('MyKeyboardListener'),
+      child: _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     final status = client.status;
     final children = <Widget>[
       DrawerHeader(
@@ -117,60 +183,66 @@ class _MyDrawerViewState extends State<MyDrawerView> {
     ];
     if (widget.back) {
       children.add(
-        ListTile(
-          leading: const Icon(Icons.arrow_back),
-          title: Text(MaterialLocalizations.of(context).backButtonTooltip),
-          onTap: widget.disabled
-              ? null
-              : () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
+        FocusScope(
+          autofocus: true,
+          node: focusScopeNode,
+          child: ListTile(
+            focusNode: createFocusNode('backup', data: _ActionType.backup),
+            leading: const Icon(Icons.arrow_back),
+            title: Text(MaterialLocalizations.of(context).backButtonTooltip),
+            onTap: widget.disabled ? null : _backup,
+          ),
         ),
       );
       children.add(const Divider());
     }
 
     children.addAll(<Widget>[
-      ListTile(
-        leading: const Icon(Icons.settings),
-        title: Text(S.of(context).settings.title),
-        onTap: () => Navigator.of(context)
-          ..pushNamed(
-            MyRoutes.settings,
-          ),
-      ),
-      const Divider(),
-      ListTile(
-        leading: const Icon(Icons.account_box),
-        title: Text(S.of(context).account.manage),
-        onTap: () => Navigator.of(context)
-          ..pushNamed(
-            MyRoutes.account,
-          ),
-      ),
-      const Divider(),
-      ListTile(
-        leading: const Icon(Icons.help),
-        title: Text(S.of(context).app.help),
-        onTap: () async {
-          try {
-            const url = 'https://github.com/powerpuffpenguin/piwigo/issues';
-            debugPrint('launch $url');
-            await launch(url);
-          } catch (e) {
-            BotToast.showText(text: '$e');
-          }
-        },
-      ),
-      const Divider(),
-      ListTile(
-        leading: const Icon(Icons.info),
-        title: Text(
-          MaterialLocalizations.of(context)
-              .aboutListTileTitle(S.of(context).appName),
+      FocusScope(
+        autofocus: true,
+        node: focusScopeNode,
+        child: ListTile(
+          focusNode: createFocusNode('settings', data: _ActionType.settings),
+          leading: const Icon(Icons.settings),
+          title: Text(S.of(context).settings.title),
+          onTap: widget.disabled ? null : _openSettings,
         ),
-        onTap: _showAbout,
+      ),
+      const Divider(),
+      FocusScope(
+        autofocus: true,
+        node: focusScopeNode,
+        child: ListTile(
+          focusNode: createFocusNode('account', data: _ActionType.account),
+          leading: const Icon(Icons.account_box),
+          title: Text(S.of(context).account.manage),
+          onTap: widget.disabled ? null : _openAccount,
+        ),
+      ),
+      const Divider(),
+      FocusScope(
+        autofocus: true,
+        node: focusScopeNode,
+        child: ListTile(
+          focusNode: createFocusNode('help', data: _ActionType.help),
+          leading: const Icon(Icons.help),
+          title: Text(S.of(context).app.help),
+          onTap: widget.disabled ? null : _openHelp,
+        ),
+      ),
+      const Divider(),
+      FocusScope(
+        autofocus: true,
+        node: focusScopeNode,
+        child: ListTile(
+          focusNode: createFocusNode('about', data: _ActionType.about),
+          leading: const Icon(Icons.info),
+          title: Text(
+            MaterialLocalizations.of(context)
+                .aboutListTileTitle(S.of(context).appName),
+          ),
+          onTap: widget.disabled ? null : _openAbout,
+        ),
       ),
     ]);
     if (MyEnvironment.isDebug) {

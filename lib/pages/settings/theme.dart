@@ -2,8 +2,9 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:piwigo/db/theme.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
+import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
 import 'package:piwigo/pages/widget/spin.dart';
-import 'package:ppg_ui/ppg_ui.dart';
+import 'package:piwigo/pages/widget/state.dart';
 
 class MySettingsThemePage extends StatefulWidget {
   const MySettingsThemePage({
@@ -13,7 +14,7 @@ class MySettingsThemePage extends StatefulWidget {
   _MySettingsThemePageState createState() => _MySettingsThemePageState();
 }
 
-class _MySettingsThemePageState extends UIState<MySettingsThemePage> {
+class _MySettingsThemePageState extends MyState<MySettingsThemePage> {
   late String _theme;
   @override
   void initState() {
@@ -28,26 +29,80 @@ class _MySettingsThemePageState extends UIState<MySettingsThemePage> {
     }));
   }
 
+  _selected(String? theme) async {
+    if (disabled || _theme == theme) {
+      return;
+    }
+    setState(() {
+      disabled = true;
+    });
+    try {
+      if (theme == null) {
+        await MyTheme().save('');
+      } else {
+        await MyTheme().save(theme);
+      }
+      aliveSetState(() {
+        disabled = false;
+      });
+    } catch (e) {
+      if (isNotClosed) {
+        BotToast.showText(text: '$e');
+        disabled = false;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () => Future.value(enabled),
+      child: MyKeyboardListener(
+        focusNode: createFocusNode('MyKeyboardListener'),
+        child: _build(context),
+        onSelected: () {
+          final focused = focusedNode();
+          if (focused == null) {
+            return;
+          }
+          if (focused.isArrowBack) {
+            Navigator.of(context).pop();
+            return;
+          }
+          _selected(focused.data);
+        },
+      ),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: backOfAppBar(context),
         title: Text(S.of(context).settings.theme),
       ),
-      body: Builder(
-        builder: (context) => ListView(
-          children: MyTheme.supported
-              .map<Widget>((v) => _buildListTile(context, v.item1))
-              .toList()
-            ..insert(0, _buildListTile(context, null)),
-        ),
+      body: ListView.builder(
+        itemCount: MyTheme.supported.length + 1,
+        itemBuilder: (context, i) {
+          final child = _buildListTile(
+            context,
+            i.toString(),
+            i == 0 ? null : MyTheme.supported[i - 1].item1,
+          );
+          return FocusScope(
+            autofocus: true,
+            node: focusScopeNode,
+            child: child,
+          );
+        },
       ),
       floatingActionButton: disabled ? createSpinFloating() : null,
     );
   }
 
-  Widget _buildListTile(BuildContext context, String? theme) {
+  Widget _buildListTile(BuildContext context, String id, String? theme) {
     return ListTile(
+      focusNode: createFocusNode(id, data: theme),
       leading: _theme == (theme ?? '')
           ? Icon(
               Icons.check_circle,
@@ -57,27 +112,10 @@ class _MySettingsThemePageState extends UIState<MySettingsThemePage> {
       title: Text(
         theme ?? S.of(context).settings.systemDefault,
       ),
-      onTap: disabled || _theme == theme
+      onTap: disabled
           ? null
-          : () async {
-              setState(() {
-                disabled = true;
-              });
-              try {
-                if (theme == null) {
-                  await MyTheme().save('');
-                } else {
-                  await MyTheme().save(theme);
-                }
-                aliveSetState(() {
-                  disabled = false;
-                });
-              } catch (e) {
-                if (isNotClosed) {
-                  BotToast.showText(text: '$e');
-                  disabled = false;
-                }
-              }
+          : () {
+              _selected(theme);
             },
     );
   }

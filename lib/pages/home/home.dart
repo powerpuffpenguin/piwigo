@@ -34,8 +34,8 @@ class _MyHomePageState extends MyState<MyHomePage> {
   final _cancelToken = CancelToken();
   @override
   void initState() {
-    gclient = client;
     super.initState();
+
     if (client.status == null) {
       _init().then((ok) {
         if (ok && isNotClosed) {
@@ -120,20 +120,9 @@ class _MyHomePageState extends MyState<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: FocusScope(
-          node: focusScopeNode,
-          child: Builder(
-            builder: (context) => IconButton(
-              focusNode: createFocusNode(
-                'openDrawer',
-                data: const MySelectAction(what: MyActionType.openDrawer),
-              ),
-              icon: const Icon(Icons.menu),
-              iconSize: 24,
-              onPressed: () => Scaffold.of(context).openDrawer(),
-              tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
-            ),
-          ),
+        leading: openDrawerOfAppBar(
+          context,
+          data: const MySelectAction(what: MyActionType.openDrawer),
         ),
         title: Text(S.of(context).appName),
       ),
@@ -160,14 +149,12 @@ class _MyHomePageState extends MyState<MyHomePage> {
                   }
                 },
           focusNode: createFocusNode('KeyboardListener'),
-          builder: (context) {
-            return _error == null
-                ? _buildBody(context)
-                : Text(
-                    "$_error",
-                    style: TextStyle(color: Theme.of(context).errorColor),
-                  );
-          },
+          child: _error == null
+              ? _buildBody(context)
+              : Text(
+                  "$_error",
+                  style: TextStyle(color: Theme.of(context).errorColor),
+                ),
         ),
       ),
       floatingActionButton: _buildFloatingActionButton(context),

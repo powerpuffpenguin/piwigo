@@ -209,18 +209,9 @@ class _MyViewPageState extends MyState<MyViewPage> {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: toolbarHeight,
-        leading: FocusScope(
-          node: focusScopeNode,
-          child: IconButton(
-            focusNode: createFocusNode(
-              'arrow_back',
-              data: const MySelectAction(what: MyActionType.arrowBack),
-            ),
-            icon: const Icon(Icons.arrow_back),
-            iconSize: 24,
-            onPressed: () => Navigator.of(context).pop(),
-            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-          ),
+        leading: backOfAppBar(
+          context,
+          data: const MySelectAction(what: MyActionType.arrowBack),
         ),
         title: Text(categorie.name),
       ),
@@ -248,14 +239,12 @@ class _MyViewPageState extends MyState<MyViewPage> {
                 }
               },
         focusNode: createFocusNode('KeyboardListener'),
-        builder: (context) {
-          return _error == null
-              ? _buildBody(context)
-              : Text(
-                  "$_error",
-                  style: TextStyle(color: Theme.of(context).errorColor),
-                );
-        },
+        child: _error == null
+            ? _buildBody(context)
+            : Text(
+                "$_error",
+                style: TextStyle(color: Theme.of(context).errorColor),
+              ),
       ),
       floatingActionButton: _buildFloatingActionButton(context),
     );
