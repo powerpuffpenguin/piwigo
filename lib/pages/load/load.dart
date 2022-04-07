@@ -45,7 +45,8 @@ class _MyLoadPageState extends UIState<MyLoadPage> {
           MaterialPageRoute(
             builder: (_) => MyHomePage(
               client: Client(
-                baseUrl: account!.url,
+                account: account!.id,
+                baseUrl: account.url,
                 name: account.name,
                 password: account.password,
               ),
@@ -61,7 +62,8 @@ class _MyLoadPageState extends UIState<MyLoadPage> {
           MaterialPageRoute(
             builder: (_) => MyHomePage(
               client: Client(
-                baseUrl: account!.url,
+                account: account!.id,
+                baseUrl: account.url,
                 name: account.name,
                 password: account.password,
               ),

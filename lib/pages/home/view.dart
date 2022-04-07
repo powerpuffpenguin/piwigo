@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
+import 'package:piwigo/pages/download/download.dart';
+import 'package:piwigo/pages/download/source.dart';
 import 'package:piwigo/pages/home/fullscreen.dart';
 import 'package:piwigo/pages/home/select_action.dart';
 import 'package:piwigo/pages/widget/builder/row_builder.dart';
@@ -15,24 +17,6 @@ import 'package:piwigo/pages/widget/swiper/swiper.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
 import 'package:piwigo/utils/wrap.dart';
-
-class Source {
-  final list = <PageImage>[];
-  final keys = <String, PageImage>{};
-  void add(PageImage value) {
-    if (keys.containsKey(value.id)) {
-      return;
-    }
-    keys[value.id] = value;
-    list.add(value);
-  }
-
-  void addAll(Iterable<PageImage> iterable) {
-    for (var item in iterable) {
-      add(item);
-    }
-  }
-}
 
 class MyViewPage extends StatefulWidget {
   const MyViewPage({
@@ -184,7 +168,24 @@ abstract class _ViewPageState extends MyState<MyViewPage> {
   }
 
   _openDownload() {
-    debugPrint("download");
+    final length = _source.list.length;
+    Navigator.of(context)
+        .push(
+      MaterialPageRoute(
+        builder: (_) => MyDownloadPage(
+          client: client,
+          source: categorie.images < 1 ? null : _source,
+        ),
+      ),
+    )
+        .then((value) {
+      if (isNotClosed) {
+        _resetReady();
+        if (length != _source.list.length) {
+          setState(() {});
+        }
+      }
+    });
   }
 }
 
@@ -249,8 +250,7 @@ class _MyViewPageState extends _ViewPageState
             child: IconButton(
               focusNode: createFocusNode('download'),
               tooltip: S.of(context).photo.download,
-              onPressed:
-                  disabled || categorie.images < 1 ? null : _openDownload,
+              onPressed: disabled ? null : _openDownload,
               icon: const Icon(Icons.cloud_download),
             ),
           ),

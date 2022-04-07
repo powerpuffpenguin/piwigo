@@ -77,6 +77,7 @@ class _MyAddPageState extends MyState<MyAddPage> {
     try {
       // verify
       final client = Client(
+        account: widget.account?.id ?? 0,
         baseUrl: url,
         name: name,
         password: password,
@@ -98,6 +99,7 @@ class _MyAddPageState extends MyState<MyAddPage> {
         debugPrint('insert id: $id');
         checkAlive();
         account.id = id;
+        client.account = id;
       } else {
         // edit
         account.id = widget.account!.id;

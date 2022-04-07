@@ -7,6 +7,7 @@ import './categories.dart';
 
 class Client extends RpcClient with Session, Categories {
   Client({
+    required int account,
     required String baseUrl,
     required String name,
     required String password,
@@ -14,6 +15,7 @@ class Client extends RpcClient with Session, Categories {
           dio: Dio()
             ..options.baseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'
             ..interceptors.add(CookieManager(CookieJar(ignoreExpires: true))),
+          account: account,
           name: name,
           password: password,
         );

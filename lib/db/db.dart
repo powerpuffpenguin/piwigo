@@ -10,7 +10,7 @@ import './data/helpers.dart';
 class DB {
   DB._();
   static const name = 'my.db';
-  static const version = 3;
+  static const version = 4;
 
   /// 初始化 ffi
   static Future<void> _ffiInit() async {

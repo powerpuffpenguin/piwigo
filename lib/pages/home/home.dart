@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
+import 'package:piwigo/pages/download/download.dart';
 import 'package:piwigo/pages/home/select_action.dart';
 import 'package:piwigo/pages/home/view.dart';
 import 'package:piwigo/pages/widget/builder/row_builder.dart';
@@ -15,8 +16,6 @@ import 'package:piwigo/rpc/webapi/client.dart';
 import 'package:piwigo/utils/wrap.dart';
 import './select_action.dart';
 
-Client? gclient;
-
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
     Key? key,
@@ -28,7 +27,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends MyState<MyHomePage> {
-  Client get client => gclient ?? widget.client;
+  Client get client => widget.client;
   bool _inited = false;
   dynamic _error;
   final _source = <Categorie>[];
@@ -135,6 +134,27 @@ class _MyHomePageState extends MyState<MyHomePage> {
     });
   }
 
+  _openUpload() {
+    debugPrint("upload");
+  }
+
+  _openDownload() {
+    Navigator.of(context)
+        .push(
+      MaterialPageRoute(
+        builder: (_) => MyDownloadPage(
+          client: client,
+          source: null,
+        ),
+      ),
+    )
+        .then((value) {
+      if (isNotClosed) {
+        _resetReady();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,6 +164,26 @@ class _MyHomePageState extends MyState<MyHomePage> {
           data: const MySelectAction(what: MyActionType.openDrawer),
         ),
         title: Text(S.of(context).appName),
+        actions: [
+          FocusScope(
+            node: focusScopeNode,
+            child: IconButton(
+              focusNode: createFocusNode('download'),
+              tooltip: S.of(context).photo.download,
+              onPressed: disabled ? null : _openDownload,
+              icon: const Icon(Icons.cloud_download),
+            ),
+          ),
+          FocusScope(
+            node: focusScopeNode,
+            child: IconButton(
+              focusNode: createFocusNode('upload'),
+              tooltip: S.of(context).photo.upload,
+              onPressed: disabled ? null : _openUpload,
+              icon: const Icon(Icons.cloud_upload),
+            ),
+          ),
+        ],
       ),
       drawer: MyDrawerView(
         client: client,
@@ -157,9 +197,22 @@ class _MyHomePageState extends MyState<MyHomePage> {
                   if (!_ready) {
                     return;
                   }
+
                   if (evt.logicalKey == LogicalKeyboardKey.select ||
                       evt.logicalKey == LogicalKeyboardKey.enter) {
-                    final data = focusedNode()?.data;
+                    final focused = focusedNode();
+                    if (focused == null) {
+                      return;
+                    } else if (evt.logicalKey == LogicalKeyboardKey.select) {
+                      if (focused.id == 'download') {
+                        _openDownload();
+                        return;
+                      } else if (focused.id == 'upload') {
+                        _openUpload();
+                        return;
+                      }
+                    }
+                    final data = focused.data;
                     if (data is MySelectAction) {
                       switch (data.what) {
                         case MyActionType.openDrawer:

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:piwigo/pages/dev/crypto.dart';
 import 'package:piwigo/pages/dev/player.dart';
 import 'package:piwigo/pages/dev/rpc.dart';
+import 'package:piwigo/pages/dev/stream.dart';
 import 'package:piwigo/pages/dev/swiper.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
 
@@ -23,6 +25,26 @@ class _MyDevPageState extends State<MyDevPage> {
       ),
       body: ListView(
         children: [
+          TextButton(
+            child: const Text('Stream'),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const MyTestStreamPage(),
+                ),
+              );
+            },
+          ),
+          TextButton(
+            child: const Text('Crypto'),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const MyTestCryptoPage(),
+                ),
+              );
+            },
+          ),
           TextButton(
             child: const Text('Player'),
             onPressed: () {

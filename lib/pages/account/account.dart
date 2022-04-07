@@ -84,6 +84,7 @@ class _MyAccountPageState extends MyState<MyAccountPage> {
 
   void _openHome(Account account) {
     final client = Client(
+      account: account.id,
       baseUrl: account.url,
       name: account.name,
       password: account.password,

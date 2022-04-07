@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -81,11 +80,13 @@ class ImageSize extends Enum {
 
 abstract class RpcClient {
   final Dio dio;
+  int account;
   final String name;
   final String password;
   Status? status;
   RpcClient({
     required this.dio,
+    required this.account,
     required this.name,
     required this.password,
   });
