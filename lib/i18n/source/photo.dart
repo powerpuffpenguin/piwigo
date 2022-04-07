@@ -51,4 +51,12 @@ class Photo {
         'Photo.video',
         desc: '視頻',
       );
+  String get download => Intl.message(
+        'Photo.download',
+        desc: '下載',
+      );
+  String get upload => Intl.message(
+        'Photo.upload',
+        desc: '上傳',
+      );
 }

@@ -152,27 +152,24 @@ class _ImageViewState extends State<_ImageView> {
   double get height => widget.height;
   VoidCallback? get onTap => widget.onTap;
   FocusNode? get focusNode => widget.focusNode;
-  bool _hasFocus = false;
   @override
   void initState() {
     super.initState();
-    focusNode?.addListener(_listener);
-    _hasFocus = focusNode?.hasFocus ?? false;
+    if (focusNode != null) {
+      FocusManager.instance.addListener(_listener);
+    }
   }
 
   @override
   void dispose() {
-    focusNode?.removeListener(_listener);
+    if (focusNode != null) {
+      FocusManager.instance.removeListener(_listener);
+    }
     super.dispose();
   }
 
   void _listener() {
-    final val = focusNode?.hasFocus ?? false;
-    if (val != _hasFocus) {
-      setState(() {
-        _hasFocus = val;
-      });
-    }
+    setState(() {});
   }
 
   @override
@@ -208,7 +205,7 @@ class _ImageViewState extends State<_ImageView> {
   }
 
   Widget _buildBody(BuildContext context) {
-    if (_hasFocus) {
+    if (focusNode?.hasFocus ?? false) {
       return Container(
         width: width,
         height: height,
