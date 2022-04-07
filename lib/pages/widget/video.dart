@@ -161,7 +161,9 @@ class _MyVideoState extends UIState<MyVideo> {
 
   Widget _buildInit(BuildContext context) {
     final theme = Theme.of(context);
-    final url = image.derivatives.smallXX.url;
+
+    final url =
+        image.getDerivative(widget.width.toInt(), widget.height.toInt()).url;
     return Ink(
       width: width,
       height: height,

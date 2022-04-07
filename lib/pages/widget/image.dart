@@ -29,13 +29,14 @@ class MyImage extends StatelessWidget {
         focusNode: focusNode,
       );
     }
+
     return _ImageView(
       tag: "photoView_${image.id}",
       onTap: onTap,
       focusNode: focusNode,
       width: width,
       height: height,
-      url: image.derivatives.smallXX.url,
+      url: image.getDerivative(width.toInt(), height.toInt()).url,
     );
   }
 

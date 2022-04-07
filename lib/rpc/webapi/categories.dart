@@ -110,6 +110,8 @@ class Derivative {
       : url = json['url'] ?? '',
         width = intFromJson(json['width']),
         height = intFromJson(json['height']);
+
+  bool match(int w, int h) => width >= w || height >= h;
 }
 
 class Derivatives {
@@ -158,6 +160,23 @@ class PageImage {
 
   /// 衍生的照片
   Derivatives derivatives;
+
+  Derivative getDerivative(int width, int height) {
+    if (derivatives.smallXX.match(width, height)) {
+      return derivatives.smallXX;
+    } else if (derivatives.smallX.match(width, height)) {
+      return derivatives.smallX;
+    } else if (derivatives.small.match(width, height)) {
+      return derivatives.small;
+    } else if (derivatives.medium.match(width, height)) {
+      return derivatives.medium;
+    } else if (derivatives.large.match(width, height)) {
+      return derivatives.large;
+    } else if (derivatives.largeX.match(width, height)) {
+      return derivatives.largeX;
+    }
+    return derivatives.largeXX;
+  }
 
   // categories:Array 所屬相冊
   static List<PageImage> fromJsonList(List? v) {
