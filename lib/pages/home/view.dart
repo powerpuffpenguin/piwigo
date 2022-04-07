@@ -54,6 +54,17 @@ abstract class _ViewPageState extends MyState<MyViewPage> {
   dynamic _error;
 
   final _swiperController = SwiperController();
+  bool _ready = true;
+  void _resetReady() {
+    if (_ready) {
+      _ready = false;
+      Future.delayed(const Duration(milliseconds: 500)).then((value) {
+        if (isNotClosed) {
+          _ready = true;
+        }
+      });
+    }
+  }
 
   /// 是否已經獲取完整頁面數據
   bool _completed = false;
@@ -99,6 +110,7 @@ abstract class _ViewPageState extends MyState<MyViewPage> {
   }
 
   _scrollTo(int i) {
+    debugPrint('scrollTo $i');
     final size = MediaQuery.of(context).size;
     double jumpTo = 0;
     if (_categories.isNotEmpty) {
@@ -124,14 +136,20 @@ abstract class _ViewPageState extends MyState<MyViewPage> {
   }
 
   void _openView(int i) {
-    Navigator.of(context).push(
+    Navigator.of(context)
+        .push(
       MaterialPageRoute(
         builder: (_) => MyViewPage(
           client: client,
           categorie: _categories[i],
         ),
       ),
-    );
+    )
+        .then((value) {
+      if (isNotClosed) {
+        _resetReady();
+      }
+    });
   }
 
   void _openFullscreen(int i) {
@@ -147,15 +165,13 @@ abstract class _ViewPageState extends MyState<MyViewPage> {
       ),
     ).then((value) {
       if (isNotClosed) {
+        _resetReady();
         final i = _swiperController.value;
         if (i >= 0 && i < _source.list.length) {
           final node = _source.list[i];
           final focus = getFocusNode(getImageID(node.id))?.focusNode;
           if (focus?.canRequestFocus ?? false) {
             _scrollTo(i);
-            focusScopeNode
-              ..unfocus()
-              ..requestFocus();
             focus!.requestFocus();
           }
         }
@@ -193,15 +209,19 @@ class _MyViewPageState extends _ViewPageState
 
   _swiperControllerListener() {
     final index = _swiperController.value;
-    debugPrint("swipe to $index $_completed");
+
     if (!_request && !_completed) {
       final size = MediaQuery.of(context).size;
       final wrap = _calculateImageWrap(size);
-      final start = index * wrap.cols;
+
+      final rows = (index + wrap.cols - 1) ~/ wrap.cols;
+      final start = rows * wrap.cols;
       var end = start + wrap.cols;
       if (end > _source.list.length) {
         end = _source.list.length;
       }
+      debugPrint(
+          "swipe to index=$index start=$start end=$end length=${_source.list.length} fit=${wrap.fit} cols=${wrap.cols}");
       if (end >= _source.list.length - wrap.fit) {
         _request = true;
         final page = _pageinfo!.page + 1;
@@ -229,7 +249,8 @@ class _MyViewPageState extends _ViewPageState
             child: IconButton(
               focusNode: createFocusNode('download'),
               tooltip: S.of(context).photo.download,
-              onPressed: disabled ? null : _openDownload,
+              onPressed:
+                  disabled || categorie.images < 1 ? null : _openDownload,
               icon: const Icon(Icons.cloud_download),
             ),
           ),
@@ -476,6 +497,7 @@ mixin _NetComponent on _ViewPageState {
         parent: categorie.id,
         page: page,
         cancelToken: _cancelToken,
+        // pageCount: 30,
       );
       checkAlive();
 
@@ -502,6 +524,9 @@ mixin _KeyboardComponent on _ViewPageState {
   MyFocusNode? _lastLeft;
   MyFocusNode? _lastRight;
   _onKeyEvent(KeyEvent evt) {
+    if (!_ready) {
+      return;
+    }
     if (evt is KeyDownEvent) {
       _lastKey = evt.logicalKey;
       if (evt.logicalKey == LogicalKeyboardKey.arrowLeft) {
@@ -609,7 +634,9 @@ mixin _KeyboardComponent on _ViewPageState {
           _openView(data.data);
           break;
         case MyActionType.arrowBack:
-          Navigator.of(context).pop();
+          if (evt.logicalKey == LogicalKeyboardKey.select) {
+            Navigator.of(context).pop();
+          }
           break;
         case MyActionType.openFullscreen:
           _openFullscreen(data.data);

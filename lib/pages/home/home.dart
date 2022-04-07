@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/home/select_action.dart';
 import 'package:piwigo/pages/home/view.dart';
@@ -105,15 +106,33 @@ class _MyHomePageState extends MyState<MyHomePage> {
     }
   }
 
+  bool _ready = true;
+  void _resetReady() {
+    if (_ready) {
+      _ready = false;
+      Future.delayed(const Duration(milliseconds: 500)).then((value) {
+        if (isNotClosed) {
+          _ready = true;
+        }
+      });
+    }
+  }
+
   void _openView(Categorie categorie) {
-    Navigator.of(context).push(
+    Navigator.of(context)
+        .push(
       MaterialPageRoute(
         builder: (_) => MyViewPage(
           client: client,
           categorie: categorie,
         ),
       ),
-    );
+    )
+        .then((value) {
+      if (isNotClosed) {
+        _resetReady();
+      }
+    });
   }
 
   @override
@@ -132,19 +151,27 @@ class _MyHomePageState extends MyState<MyHomePage> {
       ),
       body: Builder(
         builder: (context) => MyKeyboardListener(
-          onSelected: disabled
+          onKeyTab: disabled
               ? null
-              : () {
-                  final data = focusedNode()?.data;
-                  if (data is MySelectAction) {
-                    switch (data.what) {
-                      case MyActionType.openDrawer:
-                        Scaffold.of(context).openDrawer();
-                        break;
-                      case MyActionType.openView:
-                        _openView(data.data);
-                        break;
-                      default:
+              : (evt) {
+                  if (!_ready) {
+                    return;
+                  }
+                  if (evt.logicalKey == LogicalKeyboardKey.select ||
+                      evt.logicalKey == LogicalKeyboardKey.enter) {
+                    final data = focusedNode()?.data;
+                    if (data is MySelectAction) {
+                      switch (data.what) {
+                        case MyActionType.openDrawer:
+                          if (evt.logicalKey == LogicalKeyboardKey.select) {
+                            Scaffold.of(context).openDrawer();
+                          }
+                          break;
+                        case MyActionType.openView:
+                          _openView(data.data);
+                          break;
+                        default:
+                      }
                     }
                   }
                 },
