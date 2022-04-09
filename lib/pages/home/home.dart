@@ -128,6 +128,7 @@ class _MyHomePageState extends MyState<MyHomePage> {
         builder: (_) => MyViewPage(
           client: client,
           categorie: categorie,
+          downloadService: _downloadService,
         ),
       ),
     )
@@ -154,7 +155,11 @@ class _MyHomePageState extends MyState<MyHomePage> {
       MaterialPageRoute(
         builder: (_) => MyDownloadPage(
           client: client,
+          downloadService: _downloadService!,
           source: null,
+          categorie: null,
+          pageinfo: null,
+          scrollController: null,
         ),
       ),
     )
@@ -175,15 +180,17 @@ class _MyHomePageState extends MyState<MyHomePage> {
         ),
         title: Text(S.of(context).appName),
         actions: [
-          FocusScope(
-            node: focusScopeNode,
-            child: IconButton(
-              focusNode: createFocusNode('download'),
-              tooltip: S.of(context).photo.download,
-              onPressed: disabled ? null : _openDownload,
-              icon: const Icon(Icons.cloud_download),
-            ),
-          ),
+          _downloadService == null
+              ? Container()
+              : FocusScope(
+                  node: focusScopeNode,
+                  child: IconButton(
+                    focusNode: createFocusNode('download'),
+                    tooltip: S.of(context).photo.download,
+                    onPressed: disabled ? null : _openDownload,
+                    icon: const Icon(Icons.cloud_download),
+                  ),
+                ),
           FocusScope(
             node: focusScopeNode,
             child: IconButton(

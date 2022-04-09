@@ -4,6 +4,7 @@ import './source/settings.dart';
 import './source/reviews.dart';
 import './source/account.dart';
 import './source/photo.dart';
+import './source/download.dart';
 
 mixin AppResource {
   String get appName => Intl.message('App Name');
@@ -27,4 +28,6 @@ mixin AppResource {
   Settings get settings => const Settings();
   SettingsLanguage get settingsLanguage => const SettingsLanguage();
   SettingsVideo get settingsVideo => const SettingsVideo();
+
+  Download get download => const Download();
 }

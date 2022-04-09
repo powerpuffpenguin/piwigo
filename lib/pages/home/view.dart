@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bot_toast/bot_toast.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +18,7 @@ import 'package:piwigo/pages/widget/state.dart';
 import 'package:piwigo/pages/widget/swiper/swiper.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
+import 'package:piwigo/service/download_service.dart';
 import 'package:piwigo/utils/wrap.dart';
 
 class MyViewPage extends StatefulWidget {
@@ -23,9 +26,11 @@ class MyViewPage extends StatefulWidget {
     Key? key,
     required this.client,
     required this.categorie,
+    required this.downloadService,
   }) : super(key: key);
   final Client client;
   final Categorie categorie;
+  final DownloadService? downloadService;
   @override
   _MyViewPageState createState() => _MyViewPageState();
 }
@@ -126,6 +131,7 @@ abstract class _ViewPageState extends MyState<MyViewPage> {
         builder: (_) => MyViewPage(
           client: client,
           categorie: _categories[i],
+          downloadService: widget.downloadService,
         ),
       ),
     )
@@ -168,13 +174,23 @@ abstract class _ViewPageState extends MyState<MyViewPage> {
   }
 
   _openDownload() {
+    if (widget.downloadService == null) {
+      BotToast.showText(
+        text: 'not supported platform: ${Platform.operatingSystem}',
+      );
+      return;
+    }
     final length = _source.list.length;
     Navigator.of(context)
         .push(
       MaterialPageRoute(
         builder: (_) => MyDownloadPage(
           client: client,
-          source: categorie.images < 1 ? null : _source,
+          source: categorie.images < 1 || _pageinfo == null ? null : _source,
+          downloadService: widget.downloadService!,
+          categorie: widget.categorie,
+          pageinfo: _pageinfo,
+          scrollController: _scrollController,
         ),
       ),
     )

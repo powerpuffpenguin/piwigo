@@ -13,6 +13,7 @@ import 'package:piwigo/utils/linked.dart';
 import 'package:piwigo/utils/mutex.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
+import 'package:path/path.dart' as path;
 
 class Downloadmanager {
   static Downloadmanager? _instance;
@@ -31,6 +32,21 @@ class Downloadmanager {
           final dir = await path_provider.getDownloadsDirectory();
           _root = dir!.path;
           break;
+        case "android":
+          final dir = await path_provider.getExternalStorageDirectory();
+          var fullpath = dir!.path;
+          while (fullpath != '/') {
+            final name = path.basename(fullpath);
+            try {
+              final n = int.parse(name);
+              if (n >= 0) {
+                _root = path.join(fullpath, 'Download');
+                return _root;
+              }
+            } catch (_) {}
+            fullpath = path.dirname(fullpath);
+          }
+          break;
         default:
           return null;
       }
@@ -45,6 +61,7 @@ class Downloadmanager {
       if (root == null) {
         return null;
       }
+      debugPrint("root=$root");
 
       var srv = _service;
       if (srv != null) {
