@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:bot_toast/bot_toast.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +16,7 @@ import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/pages/widget/state.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
+import 'package:piwigo/service/download_service.dart';
 import 'package:piwigo/utils/wrap.dart';
 import './select_action.dart';
 
@@ -32,24 +36,21 @@ class _MyHomePageState extends MyState<MyHomePage> {
   dynamic _error;
   final _source = <Categorie>[];
   final _cancelToken = CancelToken();
+  DownloadService? _downloadService;
   @override
   void initState() {
     super.initState();
 
-    if (client.status == null) {
-      _init().then((ok) {
-        if (ok && isNotClosed) {
-          _getlist();
-        }
-      });
-    } else {
-      _inited = true;
-      _getlist();
-    }
+    _init().then((ok) {
+      if (ok && isNotClosed) {
+        _getlist();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _downloadService?.dispose();
     _cancelToken.cancel();
     if (client.status != null) {
       client.logout();
@@ -63,13 +64,16 @@ class _MyHomePageState extends MyState<MyHomePage> {
       _error = null;
     });
     try {
-      if (client.name.isNotEmpty) {
-        await client.login(cancelToken: _cancelToken);
+      if (client.status == null) {
+        if (client.name.isNotEmpty) {
+          await client.login(cancelToken: _cancelToken);
+          checkAlive();
+        }
+        final status = await client.getStatus(cancelToken: _cancelToken);
         checkAlive();
+        client.status = status;
       }
-      final status = await client.getStatus(cancelToken: _cancelToken);
-      checkAlive();
-      client.status = status;
+      _downloadService = await Downloadmanager.instance.service(client);
       return true;
     } catch (e) {
       aliveSetState(() {
@@ -139,6 +143,12 @@ class _MyHomePageState extends MyState<MyHomePage> {
   }
 
   _openDownload() {
+    if (_downloadService == null) {
+      BotToast.showText(
+        text: 'not supported platform: ${Platform.operatingSystem}',
+      );
+      return;
+    }
     Navigator.of(context)
         .push(
       MaterialPageRoute(

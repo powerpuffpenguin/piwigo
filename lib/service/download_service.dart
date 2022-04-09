@@ -12,6 +12,7 @@ import 'package:piwigo/rpc/webapi/client.dart';
 import 'package:piwigo/utils/linked.dart';
 import 'package:piwigo/utils/mutex.dart';
 import 'package:rxdart/subjects.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
 
 class Downloadmanager {
   static Downloadmanager? _instance;
@@ -20,21 +21,46 @@ class Downloadmanager {
 
   DownloadService? _service;
   final _mutex = Mutex();
-  Future<DownloadService> service(Client client) async {
+  String? _root;
+  Future<String?> getDownloadsDirectory() async {
+    if (_root == null) {
+      switch (Platform.operatingSystem) {
+        case "macos":
+        case "windows":
+        case "linux":
+          final dir = await path_provider.getDownloadsDirectory();
+          _root = dir!.path;
+          break;
+        default:
+          return null;
+      }
+    }
+    return _root!;
+  }
+
+  Future<DownloadService?> service(Client client) async {
     _mutex.lock();
     try {
+      final root = await getDownloadsDirectory();
+      if (root == null) {
+        return null;
+      }
+
       var srv = _service;
       if (srv != null) {
         if (srv.client.account == client.account) {
           return srv;
         }
-        // 執行初始化
-        await srv._init();
-
+        // 銷毀過期 服務
         _service = null;
         await srv.dispose();
       }
-      srv = DownloadService(client: client);
+      srv = DownloadService(
+        client: client,
+      );
+      // 執行初始化
+      await srv._init(root);
+
       _service = srv;
       return srv;
     } finally {
@@ -44,6 +70,7 @@ class Downloadmanager {
 }
 
 class DownloadService {
+  late final String root;
   final Client client;
   final _controller = StreamController<Download>();
   DownloadService({
@@ -53,8 +80,9 @@ class DownloadService {
   }
   late DownloadHelper _downloadHelper;
   late DownloadFileHelper _downloadFileHelper;
-  Future<void> _init() async {
+  Future<void> _init(String path) async {
     try {
+      root = path;
       final helpers = await DB.helpers;
       _downloadHelper = helpers.download;
       _downloadFileHelper = helpers.downloadFile;
