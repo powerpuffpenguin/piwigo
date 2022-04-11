@@ -32,11 +32,13 @@ abstract class _State extends MyState<MySettingsLanguagePage> {
       } else {
         await MyLanguage().save(language.name);
       }
-    } catch (e) {
-      BotToast.showText(text: '$e');
-    } finally {
-      setState(() {
+      aliveSetState(() {
         disabled = false;
+      });
+    } catch (e) {
+      aliveSetState(() {
+        disabled = false;
+        BotToast.showText(text: '$e');
       });
     }
   }
@@ -46,6 +48,7 @@ class _MySettingsLanguagePageState extends _State with _KeyboardComponent {
   @override
   void initState() {
     super.initState();
+    listenKeyUp(onKeyUp);
     addSubscription(MyLanguage().subject.listen((v) {
       if (_language != v) {
         setState(() {
@@ -66,7 +69,7 @@ class _MySettingsLanguagePageState extends _State with _KeyboardComponent {
   Widget _build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: backOfAppBar(context),
+        leading: backOfAppBar(context, disabled: disabled),
         title: Text(S.of(context).settingsLanguage.title),
       ),
       body: ListView.builder(
@@ -78,7 +81,6 @@ class _MySettingsLanguagePageState extends _State with _KeyboardComponent {
             i == 0 ? null : supportedLanguage[i - 1],
           );
           return FocusScope(
-            autofocus: true,
             node: focusScopeNode,
             child: child,
           );
@@ -113,9 +115,11 @@ class _MySettingsLanguagePageState extends _State with _KeyboardComponent {
 mixin _KeyboardComponent on _State {
   void onKeyUp(KeyEvent evt) {
     if (evt.logicalKey == LogicalKeyboardKey.select) {
-      final focused = focusedNode();
-      if (enabled && focused != null) {
-        _selectFocused(focused);
+      if (enabled) {
+        final focused = focusedNode();
+        if (focused != null) {
+          _selectFocused(focused);
+        }
       }
     }
   }

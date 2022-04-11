@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:piwigo/db/language.dart';
 import 'package:piwigo/db/theme.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
-import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
 import 'package:piwigo/pages/widget/state.dart';
 import 'package:piwigo/routes.dart';
+
+class _FocusID {
+  _FocusID._();
+  static const arrowBack = MyFocusNode.arrowBack;
+  static const language = 'language';
+  static const theme = 'theme';
+  static const video = 'video';
+}
 
 class MySettingsPage extends StatefulWidget {
   const MySettingsPage({
@@ -14,13 +22,35 @@ class MySettingsPage extends StatefulWidget {
   _MySettingsPageState createState() => _MySettingsPageState();
 }
 
-class _MySettingsPageState extends MyState<MySettingsPage> {
+abstract class _State extends MyState<MySettingsPage> {
   Language? _language;
   String? _theme;
+  Language? getLanguage(String? name) {
+    if (name == null) {
+      return null;
+    }
+    final supported = getSupported();
+    return supported[name];
+  }
 
+  void _openLanguage() {
+    Navigator.of(context).pushNamed(MyRoutes.settingsLanguage);
+  }
+
+  void _openTheme() {
+    Navigator.of(context).pushNamed(MyRoutes.settingsTheme);
+  }
+
+  void _openVideo() {
+    Navigator.of(context).pushNamed(MyRoutes.settingsVideo);
+  }
+}
+
+class _MySettingsPageState extends _State with _KeyboardComponent {
   @override
   void initState() {
     super.initState();
+    listenKeyUp(onKeyUp);
     addAllSubscription([
       MyLanguage().subject.listen((v) {
         final current = getLanguage(v);
@@ -48,54 +78,8 @@ class _MySettingsPageState extends MyState<MySettingsPage> {
     ]);
   }
 
-  Language? getLanguage(String? name) {
-    if (name == null) {
-      return null;
-    }
-    final supported = getSupported();
-    return supported[name];
-  }
-
-  void _openLanguage() {
-    Navigator.of(context).pushNamed(MyRoutes.settingsLanguage);
-  }
-
-  void _openTheme() {
-    Navigator.of(context).pushNamed(MyRoutes.settingsTheme);
-  }
-
-  void _openVideo() {
-    Navigator.of(context).pushNamed(MyRoutes.settingsVideo);
-  }
-
   @override
   Widget build(BuildContext context) {
-    return MyKeyboardListener(
-      focusNode: createFocusNode('MyKeyboardListener'),
-      child: _build(context),
-      onKeySubmit: disabled
-          ? null
-          : (evt) {
-              final id = focusedNode()?.id ?? '';
-              switch (id) {
-                case 'arrow_back':
-                  Navigator.of(context).pop();
-                  break;
-                case 'language':
-                  _openLanguage();
-                  break;
-                case 'theme':
-                  _openTheme();
-                  break;
-                case 'video':
-                  _openVideo();
-                  break;
-              }
-            },
-    );
-  }
-
-  Widget _build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: backOfAppBar(context),
@@ -104,10 +88,9 @@ class _MySettingsPageState extends MyState<MySettingsPage> {
       body: ListView(
         children: <Widget>[
           FocusScope(
-            autofocus: true,
             node: focusScopeNode,
             child: ListTile(
-              focusNode: createFocusNode('language'),
+              focusNode: createFocusNode(_FocusID.language),
               leading: const Icon(Icons.language),
               title: Text(S.of(context).settings.language),
               subtitle: _language == null
@@ -120,7 +103,7 @@ class _MySettingsPageState extends MyState<MySettingsPage> {
           FocusScope(
             node: focusScopeNode,
             child: ListTile(
-              focusNode: createFocusNode('theme'),
+              focusNode: createFocusNode(_FocusID.theme),
               leading: const Icon(Icons.style),
               title: Text(S.of(context).settings.theme),
               subtitle: _theme == null
@@ -132,7 +115,7 @@ class _MySettingsPageState extends MyState<MySettingsPage> {
           FocusScope(
             node: focusScopeNode,
             child: ListTile(
-              focusNode: createFocusNode('video'),
+              focusNode: createFocusNode(_FocusID.video),
               leading: const Icon(Icons.video_settings),
               title: Text(S.of(context).settingsVideo.title),
               onTap: _openVideo,
@@ -141,5 +124,35 @@ class _MySettingsPageState extends MyState<MySettingsPage> {
         ],
       ),
     );
+  }
+}
+
+mixin _KeyboardComponent on _State {
+  void onKeyUp(KeyEvent evt) {
+    if (evt.logicalKey == LogicalKeyboardKey.select) {
+      if (enabled) {
+        final focused = focusedNode();
+        if (focused != null) {
+          _selectFocused(focused);
+        }
+      }
+    }
+  }
+
+  void _selectFocused(MyFocusNode focused) {
+    switch (focused.id) {
+      case _FocusID.arrowBack:
+        Navigator.of(context).pop();
+        break;
+      case _FocusID.language:
+        _openLanguage();
+        break;
+      case _FocusID.theme:
+        _openTheme();
+        break;
+      case _FocusID.video:
+        _openVideo();
+        break;
+    }
   }
 }

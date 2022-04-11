@@ -204,7 +204,6 @@ class _MyHomePageState extends MyState<MyHomePage> {
       ),
       drawer: MyDrawerView(
         client: client,
-        disabled: disabled,
       ),
       body: Builder(
         builder: (context) => MyKeyboardListener(

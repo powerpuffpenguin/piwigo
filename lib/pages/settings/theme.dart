@@ -1,8 +1,8 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:piwigo/db/theme.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
-import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
 import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/pages/widget/state.dart';
 
@@ -14,21 +14,8 @@ class MySettingsThemePage extends StatefulWidget {
   _MySettingsThemePageState createState() => _MySettingsThemePageState();
 }
 
-class _MySettingsThemePageState extends MyState<MySettingsThemePage> {
+abstract class _State extends MyState<MySettingsThemePage> {
   late String _theme;
-  @override
-  void initState() {
-    super.initState();
-    _theme = MyTheme.instance.value;
-    addSubscription(MyTheme().subject.listen((v) {
-      if (_theme != v) {
-        setState(() {
-          _theme = v;
-        });
-      }
-    }));
-  }
-
   _selected(String? theme) async {
     if (disabled || _theme == theme) {
       return;
@@ -46,41 +33,41 @@ class _MySettingsThemePageState extends MyState<MySettingsThemePage> {
         disabled = false;
       });
     } catch (e) {
-      if (isNotClosed) {
-        BotToast.showText(text: '$e');
+      aliveSetState(() {
         disabled = false;
-      }
+        BotToast.showText(text: '$e');
+      });
     }
+  }
+}
+
+class _MySettingsThemePageState extends _State with _KeyboardComponent {
+  @override
+  void initState() {
+    super.initState();
+    listenKeyUp(onKeyUp);
+    _theme = MyTheme.instance.value;
+    addSubscription(MyTheme().subject.listen((v) {
+      if (_theme != v) {
+        setState(() {
+          _theme = v;
+        });
+      }
+    }));
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () => Future.value(enabled),
-      child: MyKeyboardListener(
-        focusNode: createFocusNode('MyKeyboardListener'),
-        child: _build(context),
-        onKeySubmit: disabled
-            ? null
-            : (evt) {
-                final focused = focusedNode();
-                if (focused == null) {
-                  return;
-                }
-                if (focused.isArrowBack) {
-                  Navigator.of(context).pop();
-                  return;
-                }
-                _selected(focused.data);
-              },
-      ),
+      child: _build(context),
     );
   }
 
   Widget _build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: backOfAppBar(context),
+        leading: backOfAppBar(context, disabled: disabled),
         title: Text(S.of(context).settings.theme),
       ),
       body: ListView.builder(
@@ -120,5 +107,29 @@ class _MySettingsThemePageState extends MyState<MySettingsThemePage> {
               _selected(theme);
             },
     );
+  }
+}
+
+mixin _KeyboardComponent on _State {
+  void onKeyUp(KeyEvent evt) {
+    if (evt.logicalKey == LogicalKeyboardKey.select) {
+      if (enabled) {
+        final focused = focusedNode();
+        if (focused != null) {
+          _selectFocused(focused);
+        }
+      }
+    }
+  }
+
+  _selectFocused(MyFocusNode focused) {
+    switch (focused.id) {
+      case MyFocusNode.arrowBack:
+        Navigator.of(context).pop();
+        break;
+      default:
+        _selected(focused.data);
+        break;
+    }
   }
 }

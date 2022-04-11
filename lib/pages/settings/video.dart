@@ -3,8 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:piwigo/db/video.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
-import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
+import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/pages/widget/state.dart';
+
+class _FocusID {
+  _FocusID._();
+  static const arrowBack = MyFocusNode.arrowBack;
+  static const reverse = 'reverse';
+  static const scale = 'scale';
+  static const rotate = 'rotate';
+  static const submit = 'submit';
+}
 
 class MySettingsVideoPage extends StatefulWidget {
   const MySettingsVideoPage({
@@ -14,46 +23,15 @@ class MySettingsVideoPage extends StatefulWidget {
   _MySettingsVideoPageState createState() => _MySettingsVideoPageState();
 }
 
-class _MySettingsVideoPageState extends MyState<MySettingsVideoPage> {
+abstract class _State extends MyState<MySettingsVideoPage> {
   bool _reverse = false;
 
   final _scaleController = TextEditingController();
   final _rotateController = TextEditingController();
+  String _scale = '';
+  String _rotate = '';
   final _form = GlobalKey<FormState>();
-
-  @mustCallSuper
-  @override
-  initState() {
-    super.initState();
-    final data = MyVideo.instance.data;
-    _scaleController.text = data.scale.toString();
-    _rotateController.text = data.rotate.toString();
-    _reverse = data.reverse;
-  }
-
-  _onSelect(MyFocusNode focused, KeyEvent evt) {
-    if (focused.isArrowBack) {
-      Navigator.of(context).pop();
-    } else if (focused.id == 'scale') {
-      if (evt.logicalKey == LogicalKeyboardKey.select) {
-        setFocus('rotate');
-      }
-    } else if (focused.id == 'rotate') {
-      if (evt.logicalKey == LogicalKeyboardKey.select) {
-        setFocus('save');
-      }
-    } else if (focused.id == 'save') {
-      if (evt.logicalKey == LogicalKeyboardKey.select) {
-        _save();
-      }
-    } else if (focused.id == 'reverse') {
-      if (evt.logicalKey == LogicalKeyboardKey.select) {
-        setState(() {
-          _reverse = !_reverse;
-        });
-      }
-    }
-  }
+  _toglleReverse() => setState(() => _reverse = !_reverse);
 
   _save() async {
     final form = _form.currentState;
@@ -83,27 +61,33 @@ class _MySettingsVideoPageState extends MyState<MySettingsVideoPage> {
       });
     }
   }
+}
+
+class _MySettingsVideoPageState extends _State with _KeyboardComponent {
+  bool get isNotChanged {
+    final data = MyVideo.instance.data;
+    return _scale == data.scale.toString() &&
+        _rotate == data.rotate.toString() &&
+        _reverse == data.reverse;
+  }
+
+  @override
+  initState() {
+    super.initState();
+    listenKeyUp(onKeyUp);
+    final data = MyVideo.instance.data;
+    _scale = data.scale.toString();
+    _rotate = data.rotate.toString();
+    _scaleController.text = _scale;
+    _rotateController.text = _rotate;
+    _reverse = data.reverse;
+  }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () => Future.value(enabled),
-      child: MyKeyboardListener(
-        focusNode: createFocusNode('MyKeyboardListener'),
-        child: _build(context),
-        onKeyTab: disabled
-            ? null
-            : (evt) {
-                if (evt.logicalKey == LogicalKeyboardKey.select ||
-                    evt.logicalKey == LogicalKeyboardKey.enter) {
-                  final focused = focusedNode();
-                  if (focused == null) {
-                    return;
-                  }
-                  _onSelect(focused, evt);
-                }
-              },
-      ),
+      child: _build(context),
     );
   }
 
@@ -120,15 +104,17 @@ class _MySettingsVideoPageState extends MyState<MySettingsVideoPage> {
             FocusScope(
               node: focusScopeNode,
               child: SwitchListTile(
-                focusNode: createFocusNode('reverse'),
+                focusNode: createFocusNode(_FocusID.reverse),
                 title: Text(S.of(context).settingsVideo.reverse),
                 value: _reverse,
                 onChanged: disabled
                     ? null
                     : (val) {
-                        setState(() {
-                          _reverse = val;
-                        });
+                        if (_reverse != val) {
+                          setState(() {
+                            _reverse = val;
+                          });
+                        }
                       },
               ),
             ),
@@ -137,13 +123,16 @@ class _MySettingsVideoPageState extends MyState<MySettingsVideoPage> {
               child: TextFormField(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 enabled: enabled,
-                focusNode: createFocusNode('scale'),
+                focusNode: createFocusNode(_FocusID.scale),
                 controller: _scaleController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.scale),
                   label: Text(S.of(context).settingsVideo.scale),
                 ),
+                onSaved: (val) {
+                  _scale = val ?? '';
+                },
                 validator: (str) {
                   try {
                     int v = int.parse(str ?? '');
@@ -156,7 +145,7 @@ class _MySettingsVideoPageState extends MyState<MySettingsVideoPage> {
                   return null;
                 },
                 onEditingComplete: () {
-                  setFocus('rotate');
+                  setFocus(_FocusID.rotate);
                 },
               ),
             ),
@@ -165,13 +154,16 @@ class _MySettingsVideoPageState extends MyState<MySettingsVideoPage> {
               child: TextFormField(
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 enabled: enabled,
-                focusNode: createFocusNode('rotate'),
+                focusNode: createFocusNode(_FocusID.rotate),
                 controller: _rotateController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.rotate_90_degrees_cw),
                   label: Text(S.of(context).settingsVideo.rotate),
                 ),
+                onSaved: (val) {
+                  _rotate = val ?? '';
+                },
                 validator: (str) {
                   try {
                     int v = int.parse(str ?? '');
@@ -184,21 +176,80 @@ class _MySettingsVideoPageState extends MyState<MySettingsVideoPage> {
                   return null;
                 },
                 onEditingComplete: () {
-                  setFocus('save');
+                  setFocus(_FocusID.submit);
                 },
-              ),
-            ),
-            FocusScope(
-              node: focusScopeNode,
-              child: TextButton(
-                focusNode: createFocusNode('save'),
-                child: Text(S.of(context).app.save),
-                onPressed: disabled ? null : _save,
               ),
             ),
           ],
         ),
       ),
+      floatingActionButton: _buildFloatingActionButton(context),
     );
+  }
+
+  Widget _buildFloatingActionButton(BuildContext context) {
+    if (disabled) {
+      return createSpinFloating();
+    }
+    return FocusScope(
+      node: focusScopeNode,
+      child: FloatingActionButton(
+        focusColor: Theme.of(context).focusColor.withOpacity(0.5),
+        focusNode: createFocusNode(_FocusID.submit),
+        child: const Icon(Icons.save),
+        tooltip: S.of(context).app.save,
+        onPressed: disabled || isNotChanged ? null : _save,
+      ),
+    );
+  }
+}
+
+mixin _KeyboardComponent on _State {
+  void onKeyUp(KeyEvent evt) {
+    if (evt.logicalKey == LogicalKeyboardKey.select) {
+      if (enabled) {
+        final focused = focusedNode();
+        if (focused != null) {
+          _selectFocused(focused);
+        }
+      }
+    } else if (evt.logicalKey == LogicalKeyboardKey.arrowDown) {
+      final focused = focusedNode();
+      if (focused != null) {
+        _nextFocus(focused);
+      }
+    }
+  }
+
+  _nextFocus(MyFocusNode focused) {
+    switch (focused.id) {
+      case _FocusID.scale:
+        setFocus(_FocusID.rotate, focused: focused.focusNode);
+        break;
+      case _FocusID.rotate:
+        setFocus(_FocusID.submit, focused: focused.focusNode);
+        break;
+      case _FocusID.submit:
+        setFocus(_FocusID.arrowBack, focused: focused.focusNode);
+        break;
+    }
+  }
+
+  _selectFocused(MyFocusNode focused) {
+    switch (focused.id) {
+      case _FocusID.arrowBack:
+        Navigator.of(context).pop();
+        break;
+      case _FocusID.reverse:
+        _toglleReverse();
+        break;
+      case _FocusID.rotate:
+      case _FocusID.scale:
+        _nextFocus(focused);
+        break;
+      case _FocusID.submit:
+        _save();
+        break;
+    }
   }
 }

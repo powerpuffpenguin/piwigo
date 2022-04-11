@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:piwigo/environment.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/dev/dev.dart';
@@ -12,12 +13,13 @@ import 'package:piwigo/routes.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-enum _ActionType {
-  backup,
-  settings,
-  account,
-  help,
-  about,
+class _FocusID {
+  _FocusID._();
+  static const arrowBack = MyFocusNode.arrowBack;
+  static const settings = 'settings';
+  static const account = 'account';
+  static const help = 'help';
+  static const about = 'about';
 }
 
 class MyDrawerView extends StatefulWidget {
@@ -39,14 +41,22 @@ class MyDrawerView extends StatefulWidget {
   _MyDrawerViewState createState() => _MyDrawerViewState();
 }
 
-class _MyDrawerViewState extends MyState<MyDrawerView> {
-  final tapGestureRecognizer0 = TapGestureRecognizer();
-  final tapGestureRecognizer1 = TapGestureRecognizer();
-  Client get client => widget.client;
+abstract class _State extends MyState<MyDrawerView> {
+  final _recognizer = <String, TapGestureRecognizer>{};
+  TapGestureRecognizer createRecognizer(String id) {
+    var recognizer = _recognizer[id];
+    if (recognizer == null) {
+      recognizer = TapGestureRecognizer();
+      _recognizer[id] = recognizer;
+    }
+    return recognizer;
+  }
+
   @override
   void dispose() {
-    tapGestureRecognizer0.dispose();
-    tapGestureRecognizer1.dispose();
+    _recognizer.forEach((key, value) {
+      value.dispose();
+    });
     super.dispose();
   }
 
@@ -60,7 +70,7 @@ class _MyDrawerViewState extends MyState<MyDrawerView> {
               color: Theme.of(context).colorScheme.secondary,
             ),
             text: url,
-            recognizer: tapGestureRecognizer1
+            recognizer: createRecognizer(url)
               ..onTap = () async {
                 try {
                   debugPrint('launch $url');
@@ -126,7 +136,9 @@ class _MyDrawerViewState extends MyState<MyDrawerView> {
       debugPrint('launch $url');
       await launch(url);
     } catch (e) {
-      BotToast.showText(text: '$e');
+      if (isNotClosed) {
+        BotToast.showText(text: '$e');
+      }
     }
   }
 
@@ -134,40 +146,18 @@ class _MyDrawerViewState extends MyState<MyDrawerView> {
     Navigator.of(context).pop();
     Navigator.of(context).pop();
   }
+}
+
+class _MyDrawerViewState extends _State with _KeyboardComponent {
+  Client get client => widget.client;
+  @override
+  void initState() {
+    super.initState();
+    listenKeyUp(onKeyUp);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MyKeyboardListener(
-      onKeySubmit: disabled
-          ? null
-          : (evt) {
-              final data = focusedNode()?.data;
-              if (data is _ActionType) {
-                switch (data) {
-                  case _ActionType.settings:
-                    _openSettings();
-                    break;
-                  case _ActionType.account:
-                    _openAccount();
-                    break;
-                  case _ActionType.help:
-                    _openHelp();
-                    break;
-                  case _ActionType.about:
-                    _openAbout();
-                    break;
-                  case _ActionType.backup:
-                    _backup();
-                    break;
-                }
-              }
-            },
-      focusNode: createFocusNode('MyKeyboardListener'),
-      child: _build(context),
-    );
-  }
-
-  Widget _build(BuildContext context) {
     final status = client.status;
     final children = <Widget>[
       DrawerHeader(
@@ -186,10 +176,9 @@ class _MyDrawerViewState extends MyState<MyDrawerView> {
     if (widget.back) {
       children.add(
         FocusScope(
-          autofocus: true,
           node: focusScopeNode,
           child: ListTile(
-            focusNode: createFocusNode('backup', data: _ActionType.backup),
+            focusNode: createFocusNode(_FocusID.arrowBack),
             leading: const Icon(Icons.arrow_back),
             title: Text(MaterialLocalizations.of(context).backButtonTooltip),
             onTap: widget.disabled ? null : _backup,
@@ -201,10 +190,9 @@ class _MyDrawerViewState extends MyState<MyDrawerView> {
 
     children.addAll(<Widget>[
       FocusScope(
-        autofocus: true,
         node: focusScopeNode,
         child: ListTile(
-          focusNode: createFocusNode('settings', data: _ActionType.settings),
+          focusNode: createFocusNode(_FocusID.settings),
           leading: const Icon(Icons.settings),
           title: Text(S.of(context).settings.title),
           onTap: widget.disabled ? null : _openSettings,
@@ -212,10 +200,9 @@ class _MyDrawerViewState extends MyState<MyDrawerView> {
       ),
       const Divider(),
       FocusScope(
-        autofocus: true,
         node: focusScopeNode,
         child: ListTile(
-          focusNode: createFocusNode('account', data: _ActionType.account),
+          focusNode: createFocusNode(_FocusID.account),
           leading: const Icon(Icons.account_box),
           title: Text(S.of(context).account.manage),
           onTap: widget.disabled ? null : _openAccount,
@@ -226,7 +213,7 @@ class _MyDrawerViewState extends MyState<MyDrawerView> {
         autofocus: true,
         node: focusScopeNode,
         child: ListTile(
-          focusNode: createFocusNode('help', data: _ActionType.help),
+          focusNode: createFocusNode(_FocusID.help),
           leading: const Icon(Icons.help),
           title: Text(S.of(context).app.help),
           onTap: widget.disabled ? null : _openHelp,
@@ -237,7 +224,7 @@ class _MyDrawerViewState extends MyState<MyDrawerView> {
         autofocus: true,
         node: focusScopeNode,
         child: ListTile(
-          focusNode: createFocusNode('about', data: _ActionType.about),
+          focusNode: createFocusNode(_FocusID.about),
           leading: const Icon(Icons.info),
           title: Text(
             MaterialLocalizations.of(context)
@@ -272,5 +259,38 @@ class _MyDrawerViewState extends MyState<MyDrawerView> {
         children: children,
       ),
     );
+  }
+}
+
+mixin _KeyboardComponent on _State {
+  void onKeyUp(KeyEvent evt) {
+    if (evt.logicalKey == LogicalKeyboardKey.select) {
+      if (enabled) {
+        final focused = focusedNode();
+        if (focused != null) {
+          _selectFocused(focused);
+        }
+      }
+    }
+  }
+
+  _selectFocused(MyFocusNode focused) {
+    switch (focused.id) {
+      case _FocusID.arrowBack:
+        _backup();
+        break;
+      case _FocusID.settings:
+        _openSettings();
+        break;
+      case _FocusID.account:
+        _openAccount();
+        break;
+      case _FocusID.help:
+        _openHelp();
+        break;
+      case _FocusID.about:
+        _openAbout();
+        break;
+    }
   }
 }

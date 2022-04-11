@@ -146,9 +146,16 @@ class _MyAddPageState extends _State with _KeyboardComponent {
 
   @override
   Widget build(BuildContext context) {
+    return WillPopScope(
+      child: _build(context),
+      onWillPop: () => Future.value(enabled),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: backOfAppBar(context),
+        leading: backOfAppBar(context, disabled: disabled),
         title: Text(widget.account == null
             ? S.of(context).account.add
             : S.of(context).account.edit),
@@ -242,15 +249,15 @@ class _MyAddPageState extends _State with _KeyboardComponent {
 mixin _KeyboardComponent on _State {
   void onKeyUp(KeyEvent evt) {
     if (evt.logicalKey == LogicalKeyboardKey.select) {
-      final focused = focusedNode();
-      if (enabled && focused != null) {
-        _selectFocused(focused);
+      if (enabled) {
+        final focused = focusedNode();
+        if (focused != null) {
+          _selectFocused(focused);
+        }
       }
     } else if (evt.logicalKey == LogicalKeyboardKey.arrowDown) {
       final focused = focusedNode();
-      if (focused == null) {
-        setFocus(_FocusID.arrowBack);
-      } else {
+      if (focused != null) {
         _nextFocus(focused);
       }
     } else if (evt.logicalKey == LogicalKeyboardKey.arrowUp ||
@@ -275,6 +282,9 @@ mixin _KeyboardComponent on _State {
         break;
       case _FocusID.visibility:
         setFocus(_FocusID.submit, focused: focused.focusNode);
+        break;
+      case _FocusID.submit:
+        setFocus(_FocusID.arrowBack, focused: focused.focusNode);
         break;
     }
   }
