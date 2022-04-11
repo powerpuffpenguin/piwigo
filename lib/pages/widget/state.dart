@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:piwigo/service/key_event_service.dart';
 import 'package:ppg_ui/state/state.dart';
 
 class MyFocusNode {
@@ -20,6 +21,9 @@ abstract class MyState<T extends StatefulWidget> extends UIState<T> {
   final _keysFocusNode = <String, MyFocusNode>{};
   final _focusNodeKeys = <FocusNode, MyFocusNode>{};
   final FocusScopeNode focusScopeNode = FocusScopeNode();
+
+  void listenKeyUp(void Function(KeyEvent)? onKeyUp) =>
+      addSubscription(KeyEventService.instance.keyUp.listen(onKeyUp));
 
   @protected
   MyFocusNode? getFocusNode(String id) => _keysFocusNode[id];
@@ -48,11 +52,21 @@ abstract class MyState<T extends StatefulWidget> extends UIState<T> {
   }
 
   @protected
-  void nextFocus(String id) {
+  void setFocus(String id, {FocusNode? focused}) {
     final focus = _keysFocusNode[id]?.focusNode;
+    focused?.unfocus();
     if (focus?.canRequestFocus ?? false) {
       focus!.requestFocus();
     }
+  }
+
+  @protected
+  void nextFocus(List<String> values, MyFocusNode? focused) {
+    var i = focused == null ? 0 : values.indexOf(focused.id) + 1;
+    if (i >= values.length) {
+      i = 0;
+    }
+    setFocus(values[i], focused: focused?.focusNode);
   }
 
   @mustCallSuper

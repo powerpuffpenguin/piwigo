@@ -138,28 +138,30 @@ class _MyDrawerViewState extends MyState<MyDrawerView> {
   @override
   Widget build(BuildContext context) {
     return MyKeyboardListener(
-      onSelected: () {
-        final data = focusedNode()?.data;
-        if (data is _ActionType) {
-          switch (data) {
-            case _ActionType.settings:
-              _openSettings();
-              break;
-            case _ActionType.account:
-              _openAccount();
-              break;
-            case _ActionType.help:
-              _openHelp();
-              break;
-            case _ActionType.about:
-              _openAbout();
-              break;
-            case _ActionType.backup:
-              _backup();
-              break;
-          }
-        }
-      },
+      onKeySubmit: disabled
+          ? null
+          : (evt) {
+              final data = focusedNode()?.data;
+              if (data is _ActionType) {
+                switch (data) {
+                  case _ActionType.settings:
+                    _openSettings();
+                    break;
+                  case _ActionType.account:
+                    _openAccount();
+                    break;
+                  case _ActionType.help:
+                    _openHelp();
+                    break;
+                  case _ActionType.about:
+                    _openAbout();
+                    break;
+                  case _ActionType.backup:
+                    _backup();
+                    break;
+                }
+              }
+            },
       focusNode: createFocusNode('MyKeyboardListener'),
       child: _build(context),
     );

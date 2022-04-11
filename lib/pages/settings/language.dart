@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:piwigo/db/language.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
-import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
 import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/pages/widget/state.dart';
 
@@ -16,19 +16,8 @@ class MySettingsLanguagePage extends StatefulWidget {
   _MySettingsLanguagePageState createState() => _MySettingsLanguagePageState();
 }
 
-class _MySettingsLanguagePageState extends MyState<MySettingsLanguagePage> {
+abstract class _State extends MyState<MySettingsLanguagePage> {
   String? _language;
-  @override
-  void initState() {
-    super.initState();
-    addSubscription(MyLanguage().subject.listen((v) {
-      if (_language != v) {
-        setState(() {
-          _language = v;
-        });
-      }
-    }));
-  }
 
   _selected(Language? language) async {
     if (disabled || _language == language?.name) {
@@ -51,26 +40,26 @@ class _MySettingsLanguagePageState extends MyState<MySettingsLanguagePage> {
       });
     }
   }
+}
+
+class _MySettingsLanguagePageState extends _State with _KeyboardComponent {
+  @override
+  void initState() {
+    super.initState();
+    addSubscription(MyLanguage().subject.listen((v) {
+      if (_language != v) {
+        setState(() {
+          _language = v;
+        });
+      }
+    }));
+  }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () => Future.value(enabled),
-      child: MyKeyboardListener(
-        focusNode: createFocusNode('MyKeyboardListener'),
-        child: _build(context),
-        onSelected: () {
-          final focused = focusedNode();
-          if (focused == null) {
-            return;
-          }
-          if (focused.isArrowBack) {
-            Navigator.of(context).pop();
-            return;
-          }
-          _selected(focused.data);
-        },
-      ),
+      child: _build(context),
     );
   }
 
@@ -118,5 +107,27 @@ class _MySettingsLanguagePageState extends MyState<MySettingsLanguagePage> {
               _selected(language);
             },
     );
+  }
+}
+
+mixin _KeyboardComponent on _State {
+  void onKeyUp(KeyEvent evt) {
+    if (evt.logicalKey == LogicalKeyboardKey.select) {
+      final focused = focusedNode();
+      if (enabled && focused != null) {
+        _selectFocused(focused);
+      }
+    }
+  }
+
+  _selectFocused(MyFocusNode focused) {
+    switch (focused.id) {
+      case MyFocusNode.arrowBack:
+        Navigator.of(context).pop();
+        break;
+      default:
+        _selected(focused.data);
+        break;
+    }
   }
 }

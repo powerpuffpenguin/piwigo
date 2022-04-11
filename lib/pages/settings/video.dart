@@ -36,11 +36,11 @@ class _MySettingsVideoPageState extends MyState<MySettingsVideoPage> {
       Navigator.of(context).pop();
     } else if (focused.id == 'scale') {
       if (evt.logicalKey == LogicalKeyboardKey.select) {
-        nextFocus('rotate');
+        setFocus('rotate');
       }
     } else if (focused.id == 'rotate') {
       if (evt.logicalKey == LogicalKeyboardKey.select) {
-        nextFocus('save');
+        setFocus('save');
       }
     } else if (focused.id == 'save') {
       if (evt.logicalKey == LogicalKeyboardKey.select) {
@@ -156,7 +156,7 @@ class _MySettingsVideoPageState extends MyState<MySettingsVideoPage> {
                   return null;
                 },
                 onEditingComplete: () {
-                  nextFocus('rotate');
+                  setFocus('rotate');
                 },
               ),
             ),
@@ -184,7 +184,7 @@ class _MySettingsVideoPageState extends MyState<MySettingsVideoPage> {
                   return null;
                 },
                 onEditingComplete: () {
-                  nextFocus('save');
+                  setFocus('save');
                 },
               ),
             ),

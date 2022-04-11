@@ -73,9 +73,9 @@ class _MySettingsPageState extends MyState<MySettingsPage> {
     return MyKeyboardListener(
       focusNode: createFocusNode('MyKeyboardListener'),
       child: _build(context),
-      onSelected: disabled
+      onKeySubmit: disabled
           ? null
-          : () {
+          : (evt) {
               final id = focusedNode()?.id ?? '';
               switch (id) {
                 case 'arrow_back':

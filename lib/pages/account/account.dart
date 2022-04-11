@@ -299,12 +299,14 @@ class _DeleteDialogState extends MyState<_DeleteDialog> {
   @override
   Widget build(BuildContext context) {
     return MyKeyboardListener(
-      onSelected: () {
-        final data = focusedNode()?.data;
-        if (data is bool) {
-          Navigator.of(context).pop(data);
-        }
-      },
+      onKeySubmit: disabled
+          ? null
+          : (evt) {
+              final data = focusedNode()?.data;
+              if (data is bool) {
+                Navigator.of(context).pop(data);
+              }
+            },
       focusNode: createFocusNode('MyKeyboardListener'),
       child: AlertDialog(
         title: Text(S.of(context).account.delete),

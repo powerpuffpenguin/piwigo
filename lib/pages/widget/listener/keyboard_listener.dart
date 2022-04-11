@@ -9,7 +9,7 @@ class MyKeyboardListener extends StatefulWidget {
     this.includeSemantics = true,
     this.onKeyEvent,
     this.onKeyTab,
-    this.onSelected,
+    this.onKeySubmit,
     required Widget child,
   })  : widgetBuilder = null,
         widget = child,
@@ -22,7 +22,7 @@ class MyKeyboardListener extends StatefulWidget {
     this.includeSemantics = true,
     this.onKeyEvent,
     this.onKeyTab,
-    this.onSelected,
+    this.onKeySubmit,
     required WidgetBuilder builder,
   })  : widgetBuilder = builder,
         widget = null,
@@ -40,7 +40,10 @@ class MyKeyboardListener extends StatefulWidget {
   /// Called whenever this widget receives a keyboard event.
   final ValueChanged<KeyEvent>? onKeyEvent;
   final ValueChanged<KeyEvent>? onKeyTab;
-  final VoidCallback? onSelected;
+
+  /// LogicalKeyboardKey.select or LogicalKeyboardKey.enter
+  final ValueChanged<KeyEvent>? onKeySubmit;
+  // final VoidCallback? onSelected;
   final WidgetBuilder? widgetBuilder;
   final Widget? widget;
   @override
@@ -62,10 +65,10 @@ class _MyKeyboardListenerState extends State<MyKeyboardListener> {
           if (widget.onKeyTab != null) {
             widget.onKeyTab!(evt);
           }
-          if (widget.onSelected != null &&
+          if (widget.onKeySubmit != null &&
               (evt.logicalKey == LogicalKeyboardKey.select ||
                   evt.logicalKey == LogicalKeyboardKey.enter)) {
-            widget.onSelected!();
+            widget.onKeySubmit!(evt);
           }
         }
       }
@@ -81,7 +84,7 @@ class _MyKeyboardListenerState extends State<MyKeyboardListener> {
       includeSemantics: widget.includeSemantics,
       onKeyEvent: (widget.onKeyEvent != null ||
               widget.onKeyTab != null ||
-              widget.onSelected != null)
+              widget.onKeySubmit != null)
           ? _onKeyEvent
           : null,
       child: widget.widget ?? widget.widgetBuilder!(context),

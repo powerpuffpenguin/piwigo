@@ -13,6 +13,7 @@ import 'package:piwigo/pages/settings/settings.dart';
 import 'package:piwigo/pages/settings/theme.dart';
 import 'package:piwigo/pages/settings/video.dart';
 import 'package:piwigo/routes.dart';
+import 'package:piwigo/service/key_event_service.dart';
 import 'package:ppg_ui/ppg_ui.dart';
 
 void main() async {
@@ -48,6 +49,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends UIState<MyApp> {
   late ThemeMode _themeMode;
+  final _focusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -80,39 +83,50 @@ class _MyAppState extends UIState<MyApp> {
   }
 
   @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      locale: MyLanguage.locale,
-      localizationsDelegates: const [
-        ...GlobalMaterialLocalizations.delegates,
-        GlobalWidgetsLocalizations.delegate,
-        S.delegate,
-      ],
-      supportedLocales: supportedLanguage.map((v) => v.locale),
-      localeResolutionCallback: MyLanguage.myLocaleResolutionCallback,
-      onGenerateTitle: (context) => S.of(context).appName,
-      darkTheme: ThemeData.dark(),
-      themeMode: _themeMode,
-      builder: BotToastInit(),
-      initialRoute: MyRoutes.load,
-      navigatorObservers: [
-        BotToastNavigatorObserver(),
-      ],
-      routes: {
-        MyRoutes.load: (context) => const MyLoadPage(),
-        MyRoutes.firstAdd: (context) => const MyAddPage(
-              push: true,
-            ),
-        MyRoutes.add: (context) => const MyAddPage(),
+    return KeyboardListener(
+      focusNode: _focusNode,
+      onKeyEvent: (evt) => KeyEventService.instance.add(evt),
+      child: MaterialApp(
+        locale: MyLanguage.locale,
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          GlobalWidgetsLocalizations.delegate,
+          S.delegate,
+        ],
+        supportedLocales: supportedLanguage.map((v) => v.locale),
+        localeResolutionCallback: MyLanguage.myLocaleResolutionCallback,
+        onGenerateTitle: (context) => S.of(context).appName,
+        darkTheme: ThemeData.dark(),
+        themeMode: _themeMode,
+        builder: BotToastInit(),
+        initialRoute: MyRoutes.load,
+        navigatorObservers: [
+          BotToastNavigatorObserver(),
+        ],
+        routes: {
+          MyRoutes.load: (context) => const MyLoadPage(),
+          MyRoutes.firstAdd: (context) => const MyAddPage(
+                push: true,
+              ),
+          MyRoutes.add: (context) => const MyAddPage(),
 
-        MyRoutes.account: (context) => const MyAccountPage(),
+          MyRoutes.account: (context) => const MyAccountPage(),
 
-        // settings
-        MyRoutes.settings: (context) => const MySettingsPage(),
-        MyRoutes.settingsLanguage: (context) => const MySettingsLanguagePage(),
-        MyRoutes.settingsTheme: (context) => const MySettingsThemePage(),
-        MyRoutes.settingsVideo: (context) => const MySettingsVideoPage(),
-      },
+          // settings
+          MyRoutes.settings: (context) => const MySettingsPage(),
+          MyRoutes.settingsLanguage: (context) =>
+              const MySettingsLanguagePage(),
+          MyRoutes.settingsTheme: (context) => const MySettingsThemePage(),
+          MyRoutes.settingsVideo: (context) => const MySettingsVideoPage(),
+        },
+      ),
     );
   }
 }

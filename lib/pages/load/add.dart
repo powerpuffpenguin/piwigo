@@ -8,10 +8,19 @@ import 'package:piwigo/db/settings.dart';
 import 'package:piwigo/environment.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/home/home.dart';
-import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
 import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/pages/widget/state.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
+
+class _FocusID {
+  _FocusID._();
+  static const arrowBack = MyFocusNode.arrowBack;
+  static const url = 'url';
+  static const name = 'name';
+  static const password = 'password';
+  static const visibility = 'visibility';
+  static const submit = 'submit';
+}
 
 class MyAddPage extends StatefulWidget {
   const MyAddPage({
@@ -25,36 +34,17 @@ class MyAddPage extends StatefulWidget {
   _MyAddPageState createState() => _MyAddPageState();
 }
 
-class _MyAddPageState extends MyState<MyAddPage> {
+abstract class _State extends MyState<MyAddPage> {
   final _urlController = TextEditingController();
   final _nameController = TextEditingController();
   final _passwordController = TextEditingController();
 
   final _form = GlobalKey<FormState>();
   var _visibility = false;
+  _toggleVisibility() => setState(() => _visibility = !_visibility);
+
   dynamic _error;
   final _cancelToken = CancelToken();
-  @override
-  void initState() {
-    super.initState();
-    if (widget.account != null) {
-      _urlController.text = widget.account!.url;
-      _nameController.text = widget.account!.name;
-      _passwordController.text = widget.account!.password;
-    }
-    if (_urlController.text == '') {
-      final focus = createFocusNode('url');
-      if (focus.canRequestFocus) {
-        focus.requestFocus();
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _cancelToken.cancel();
-    super.dispose();
-  }
 
   _submit() async {
     final url = _urlController.text;
@@ -128,44 +118,34 @@ class _MyAddPageState extends MyState<MyAddPage> {
       });
     }
   }
+}
 
-  _onSelect(MyFocusNode focused, KeyEvent evt) {
-    if (focused.isArrowBack) {
-      Navigator.of(context).pop();
-    } else if (focused.id == 'url') {
-      if (evt.logicalKey == LogicalKeyboardKey.select) {
-        nextFocus('name');
-      }
-    } else if (focused.id == 'name') {
-      if (evt.logicalKey == LogicalKeyboardKey.select) {
-        nextFocus('password');
-      }
-    } else if (focused.id == 'password') {
-      setState(() {
-        _visibility = !_visibility;
-      });
+class _MyAddPageState extends _State with _KeyboardComponent {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.account != null) {
+      _urlController.text = widget.account!.url;
+      _nameController.text = widget.account!.name;
+      _passwordController.text = widget.account!.password;
     }
+    if (_urlController.text == '') {
+      final focus = createFocusNode(_FocusID.url);
+      if (focus.canRequestFocus) {
+        focus.requestFocus();
+      }
+    }
+    listenKeyUp(onKeyUp);
+  }
+
+  @override
+  void dispose() {
+    _cancelToken.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return MyKeyboardListener(
-      focusNode: createFocusNode('MyKeyboardListener'),
-      child: _build(context),
-      onKeyTab: (evt) {
-        if (evt.logicalKey == LogicalKeyboardKey.select ||
-            evt.logicalKey == LogicalKeyboardKey.enter) {
-          final focused = focusedNode();
-          if (focused == null) {
-            return;
-          }
-          _onSelect(focused, evt);
-        }
-      },
-    );
-  }
-
-  Widget _build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: backOfAppBar(context),
@@ -182,15 +162,13 @@ class _MyAddPageState extends MyState<MyAddPage> {
               child: TextFormField(
                 enabled: enabled,
                 controller: _urlController,
-                focusNode: createFocusNode('url'),
+                focusNode: createFocusNode(_FocusID.url),
                 keyboardType: TextInputType.url,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(MaterialCommunityIcons.server),
                   label: Text(S.of(context).account.url),
                 ),
-                onEditingComplete: () {
-                  nextFocus('name');
-                },
+                onEditingComplete: () => setFocus(_FocusID.name),
               ),
             ),
             FocusScope(
@@ -198,15 +176,13 @@ class _MyAddPageState extends MyState<MyAddPage> {
               child: TextFormField(
                 enabled: enabled,
                 controller: _nameController,
-                focusNode: createFocusNode('name'),
+                focusNode: createFocusNode(_FocusID.name),
                 keyboardType: TextInputType.name,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.account_circle),
                   label: Text(S.of(context).account.name),
                 ),
-                onEditingComplete: () {
-                  nextFocus('password');
-                },
+                onEditingComplete: () => setFocus(_FocusID.password),
               ),
             ),
             FocusScope(
@@ -214,15 +190,15 @@ class _MyAddPageState extends MyState<MyAddPage> {
               child: TextFormField(
                 enabled: enabled,
                 controller: _passwordController,
-                focusNode: createFocusNode('password'),
+                focusNode: createFocusNode(_FocusID.password),
                 keyboardType: TextInputType.visiblePassword,
                 obscureText: !_visibility,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.password),
                   label: Text(S.of(context).account.password),
-                  suffix: IconButton(
-                      onPressed: () =>
-                          aliveSetState(() => _visibility = !_visibility),
+                  suffixIcon: IconButton(
+                      focusNode: createFocusNode(_FocusID.visibility),
+                      onPressed: _toggleVisibility,
                       icon: _visibility
                           ? const Icon(Icons.visibility)
                           : const Icon(Icons.visibility_off)),
@@ -250,10 +226,75 @@ class _MyAddPageState extends MyState<MyAddPage> {
     if (disabled) {
       return createSpinFloating();
     }
-    return FloatingActionButton(
-      child: const Icon(Icons.send),
-      tooltip: S.of(context).app.submit,
-      onPressed: disabled ? null : _submit,
+    return FocusScope(
+      node: focusScopeNode,
+      child: FloatingActionButton(
+        focusColor: Theme.of(context).focusColor.withOpacity(0.5),
+        focusNode: createFocusNode(_FocusID.submit),
+        child: const Icon(Icons.send),
+        tooltip: S.of(context).app.submit,
+        onPressed: disabled ? null : _submit,
+      ),
     );
+  }
+}
+
+mixin _KeyboardComponent on _State {
+  void onKeyUp(KeyEvent evt) {
+    if (evt.logicalKey == LogicalKeyboardKey.select) {
+      final focused = focusedNode();
+      if (enabled && focused != null) {
+        _selectFocused(focused);
+      }
+    } else if (evt.logicalKey == LogicalKeyboardKey.arrowDown) {
+      final focused = focusedNode();
+      if (focused == null) {
+        setFocus(_FocusID.arrowBack);
+      } else {
+        _nextFocus(focused);
+      }
+    } else if (evt.logicalKey == LogicalKeyboardKey.arrowUp ||
+        evt.logicalKey == LogicalKeyboardKey.arrowLeft) {
+      final focused = focusedNode();
+      if (focused?.id == _FocusID.visibility) {
+        setFocus(_FocusID.visibility, focused: focused?.focusNode);
+      }
+    }
+  }
+
+  _nextFocus(MyFocusNode focused) {
+    switch (focused.id) {
+      case _FocusID.url:
+        setFocus(_FocusID.name, focused: focused.focusNode);
+        break;
+      case _FocusID.name:
+        setFocus(_FocusID.password, focused: focused.focusNode);
+        break;
+      case _FocusID.password:
+        setFocus(_FocusID.visibility, focused: focused.focusNode);
+        break;
+      case _FocusID.visibility:
+        setFocus(_FocusID.submit, focused: focused.focusNode);
+        break;
+    }
+  }
+
+  _selectFocused(MyFocusNode focused) {
+    switch (focused.id) {
+      case _FocusID.arrowBack:
+        Navigator.of(context).pop();
+        break;
+      case _FocusID.url:
+      case _FocusID.name:
+      case _FocusID.password:
+        _nextFocus(focused);
+        break;
+      case _FocusID.visibility:
+        _toggleVisibility();
+        break;
+      case _FocusID.submit:
+        _submit();
+        break;
+    }
   }
 }

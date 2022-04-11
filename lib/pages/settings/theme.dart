@@ -60,17 +60,19 @@ class _MySettingsThemePageState extends MyState<MySettingsThemePage> {
       child: MyKeyboardListener(
         focusNode: createFocusNode('MyKeyboardListener'),
         child: _build(context),
-        onSelected: () {
-          final focused = focusedNode();
-          if (focused == null) {
-            return;
-          }
-          if (focused.isArrowBack) {
-            Navigator.of(context).pop();
-            return;
-          }
-          _selected(focused.data);
-        },
+        onKeySubmit: disabled
+            ? null
+            : (evt) {
+                final focused = focusedNode();
+                if (focused == null) {
+                  return;
+                }
+                if (focused.isArrowBack) {
+                  Navigator.of(context).pop();
+                  return;
+                }
+                _selected(focused.data);
+              },
       ),
     );
   }
