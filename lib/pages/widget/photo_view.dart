@@ -598,9 +598,15 @@ class _VideoPlayerState extends UIState<_VideoPlayer> {
     super.initState();
 
     final data = MyVideo.instance.data;
-    _rotate = data.rotate;
-    _scaled = data.scale;
-    _aspectRatio = data.reverse;
+    if (widget.image.width < widget.image.height) {
+      _rotate = data.rotate;
+      _scaled = data.scale;
+      _aspectRatio = data.reverse;
+    } else if (widget.image.width > widget.image.height) {
+      _rotate = data.rotate1;
+      _scaled = data.scale1;
+      _aspectRatio = data.reverse1;
+    }
 
     addSubscription(widget.stream.listen((evt) {
       if (!widget.showController) {
@@ -648,7 +654,7 @@ class _VideoPlayerState extends UIState<_VideoPlayer> {
 
   int _rotate = 0;
   int _scaled = 0;
-  bool _aspectRatio = true;
+  bool _aspectRatio = false;
   @override
   Widget build(BuildContext context) {
     return _buildScale(context);
@@ -678,8 +684,9 @@ class _VideoPlayerState extends UIState<_VideoPlayer> {
 
   Widget _buildVideo(BuildContext context) {
     final aspectRatio = _aspectRatio
-        ? widget.controller.value.aspectRatio
-        : 1 / widget.controller.value.aspectRatio;
+        ? 1 / widget.controller.value.aspectRatio
+        : widget.controller.value.aspectRatio;
+    debugPrint('${widget.controller.value.aspectRatio} $aspectRatio');
     return AspectRatio(
       aspectRatio: aspectRatio,
       child: VideoPlayer(widget.controller),
