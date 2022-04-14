@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:piwigo/environment.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/dev/dev.dart';
-import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
 import 'package:piwigo/pages/widget/state.dart';
 import 'package:piwigo/routes.dart';
 import 'package:piwigo/rpc/webapi/client.dart';

@@ -30,23 +30,13 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends MyState<MyHomePage> {
+abstract class _State extends MyState<MyHomePage> {
   Client get client => widget.client;
   bool _inited = false;
   dynamic _error;
   final _source = <Categorie>[];
   final _cancelToken = CancelToken();
   DownloadService? _downloadService;
-  @override
-  void initState() {
-    super.initState();
-
-    _init().then((ok) {
-      if (ok && isNotClosed) {
-        _getlist();
-      }
-    });
-  }
 
   @override
   void dispose() {
@@ -166,6 +156,19 @@ class _MyHomePageState extends MyState<MyHomePage> {
         .then((value) {
       if (isNotClosed) {
         _resetReady();
+      }
+    });
+  }
+}
+
+class _MyHomePageState extends _State {
+  @override
+  void initState() {
+    super.initState();
+
+    _init().then((ok) {
+      if (ok && isNotClosed) {
+        _getlist();
       }
     });
   }

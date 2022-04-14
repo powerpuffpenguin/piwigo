@@ -30,11 +30,14 @@ class Downloadmanager {
         case "windows":
         case "linux":
           final dir = await path_provider.getDownloadsDirectory();
-          _root = dir!.path;
+          _root = dir?.path;
           break;
         case "android":
           final dir = await path_provider.getExternalStorageDirectory();
-          var fullpath = dir!.path;
+          if (dir == null) {
+            return null;
+          }
+          var fullpath = dir.path;
           while (fullpath != '/') {
             final name = path.basename(fullpath);
             try {
@@ -51,7 +54,7 @@ class Downloadmanager {
           return null;
       }
     }
-    return _root!;
+    return _root;
   }
 
   Future<DownloadService?> service(Client client) async {

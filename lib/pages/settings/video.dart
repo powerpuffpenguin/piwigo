@@ -32,10 +32,21 @@ abstract class _State extends MyState<MySettingsVideoPage> {
   String _rotate = '';
   final _form = GlobalKey<FormState>();
   _toglleReverse() => setState(() => _reverse = !_reverse);
+  bool get isNotChanged {
+    final data = MyVideo.instance.data;
+    return _scale == data.scale.toString() &&
+        _rotate == data.rotate.toString() &&
+        _reverse == data.reverse;
+  }
 
   _save() async {
     final form = _form.currentState;
     if (!(form?.validate() ?? false)) {
+      return;
+    }
+    form!.save();
+    if (isNotChanged) {
+      BotToast.showText(text: 'not changed');
       return;
     }
 
@@ -64,13 +75,6 @@ abstract class _State extends MyState<MySettingsVideoPage> {
 }
 
 class _MySettingsVideoPageState extends _State with _KeyboardComponent {
-  bool get isNotChanged {
-    final data = MyVideo.instance.data;
-    return _scale == data.scale.toString() &&
-        _rotate == data.rotate.toString() &&
-        _reverse == data.reverse;
-  }
-
   @override
   initState() {
     super.initState();
@@ -111,7 +115,7 @@ class _MySettingsVideoPageState extends _State with _KeyboardComponent {
                     ? null
                     : (val) {
                         if (_reverse != val) {
-                          setState(() {
+                          aliveSetState(() {
                             _reverse = val;
                           });
                         }
@@ -198,7 +202,7 @@ class _MySettingsVideoPageState extends _State with _KeyboardComponent {
         focusNode: createFocusNode(_FocusID.submit),
         child: const Icon(Icons.save),
         tooltip: S.of(context).app.save,
-        onPressed: disabled || isNotChanged ? null : _save,
+        onPressed: disabled ? null : _save,
       ),
     );
   }
@@ -218,6 +222,24 @@ mixin _KeyboardComponent on _State {
       if (focused != null) {
         _nextFocus(focused);
       }
+    } else if (evt.logicalKey == LogicalKeyboardKey.arrowUp) {
+      final focused = focusedNode();
+      if (focused != null) {
+        switch (focused.id) {
+          case _FocusID.arrowBack:
+            setFocus(_FocusID.submit, focused: focused.focusNode);
+            break;
+        }
+      }
+    } else if (evt.logicalKey == LogicalKeyboardKey.arrowRight) {
+      final focused = focusedNode();
+      if (focused != null) {
+        switch (focused.id) {
+          case _FocusID.submit:
+            setFocus(_FocusID.arrowBack, focused: focused.focusNode);
+            break;
+        }
+      }
     }
   }
 
@@ -228,9 +250,6 @@ mixin _KeyboardComponent on _State {
         break;
       case _FocusID.rotate:
         setFocus(_FocusID.submit, focused: focused.focusNode);
-        break;
-      case _FocusID.submit:
-        setFocus(_FocusID.arrowBack, focused: focused.focusNode);
         break;
     }
   }

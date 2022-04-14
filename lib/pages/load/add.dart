@@ -35,9 +35,11 @@ class MyAddPage extends StatefulWidget {
 }
 
 abstract class _State extends MyState<MyAddPage> {
-  final _urlController = TextEditingController();
-  final _nameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _urlController =
+      TextEditingController(text: 'http://photo.king011.com:8001');
+  final _nameController = TextEditingController(text: 'king');
+  final _passwordController =
+      TextEditingController(text: 'jay123jolin456anita&*(');
 
   final _form = GlobalKey<FormState>();
   var _visibility = false;
@@ -260,11 +262,28 @@ mixin _KeyboardComponent on _State {
       if (focused != null) {
         _nextFocus(focused);
       }
-    } else if (evt.logicalKey == LogicalKeyboardKey.arrowUp ||
-        evt.logicalKey == LogicalKeyboardKey.arrowLeft) {
+    } else if (evt.logicalKey == LogicalKeyboardKey.arrowUp) {
       final focused = focusedNode();
-      if (focused?.id == _FocusID.visibility) {
-        setFocus(_FocusID.visibility, focused: focused?.focusNode);
+      if (focused != null) {
+        switch (focused.id) {
+          case _FocusID.arrowBack:
+            setFocus(_FocusID.submit, focused: focused.focusNode);
+            break;
+        }
+      }
+    } else if (evt.logicalKey == LogicalKeyboardKey.arrowDown) {
+      final focused = focusedNode();
+      if (focused != null) {
+        _nextFocus(focused);
+      }
+    } else if (evt.logicalKey == LogicalKeyboardKey.arrowRight) {
+      final focused = focusedNode();
+      if (focused != null) {
+        switch (focused.id) {
+          case _FocusID.submit:
+            setFocus(_FocusID.arrowBack, focused: focused.focusNode);
+            break;
+        }
       }
     }
   }
@@ -279,12 +298,6 @@ mixin _KeyboardComponent on _State {
         break;
       case _FocusID.password:
         setFocus(_FocusID.visibility, focused: focused.focusNode);
-        break;
-      case _FocusID.visibility:
-        setFocus(_FocusID.submit, focused: focused.focusNode);
-        break;
-      case _FocusID.submit:
-        setFocus(_FocusID.arrowBack, focused: focused.focusNode);
         break;
     }
   }
