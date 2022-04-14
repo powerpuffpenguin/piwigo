@@ -217,11 +217,6 @@ mixin _KeyboardComponent on _State {
           _selectFocused(focused);
         }
       }
-    } else if (evt.logicalKey == LogicalKeyboardKey.arrowDown) {
-      final focused = focusedNode();
-      if (focused != null) {
-        _nextFocus(focused);
-      }
     } else if (evt.logicalKey == LogicalKeyboardKey.arrowUp) {
       final focused = focusedNode();
       if (focused != null) {

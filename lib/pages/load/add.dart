@@ -35,11 +35,9 @@ class MyAddPage extends StatefulWidget {
 }
 
 abstract class _State extends MyState<MyAddPage> {
-  final _urlController =
-      TextEditingController(text: 'http://photo.king011.com:8001');
-  final _nameController = TextEditingController(text: 'king');
-  final _passwordController =
-      TextEditingController(text: 'jay123jolin456anita&*(');
+  final _urlController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   final _form = GlobalKey<FormState>();
   var _visibility = false;
@@ -270,11 +268,6 @@ mixin _KeyboardComponent on _State {
             setFocus(_FocusID.submit, focused: focused.focusNode);
             break;
         }
-      }
-    } else if (evt.logicalKey == LogicalKeyboardKey.arrowDown) {
-      final focused = focusedNode();
-      if (focused != null) {
-        _nextFocus(focused);
       }
     } else if (evt.logicalKey == LogicalKeyboardKey.arrowRight) {
       final focused = focusedNode();
