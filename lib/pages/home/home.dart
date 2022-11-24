@@ -1,11 +1,7 @@
-import 'dart:io';
-
-import 'package:bot_toast/bot_toast.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
-import 'package:piwigo/pages/download/download.dart';
 import 'package:piwigo/pages/home/select_action.dart';
 import 'package:piwigo/pages/home/view.dart';
 import 'package:piwigo/pages/widget/builder/row_builder.dart';
@@ -16,7 +12,6 @@ import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/pages/widget/state.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
-import 'package:piwigo/service/download_service.dart';
 import 'package:piwigo/utils/wrap.dart';
 import './select_action.dart';
 
@@ -36,11 +31,9 @@ abstract class _State extends MyState<MyHomePage> {
   dynamic _error;
   final _source = <Categorie>[];
   final _cancelToken = CancelToken();
-  DownloadService? _downloadService;
 
   @override
   void dispose() {
-    _downloadService?.dispose();
     _cancelToken.cancel();
     if (client.status != null) {
       client.logout();
@@ -63,7 +56,6 @@ abstract class _State extends MyState<MyHomePage> {
         checkAlive();
         client.status = status;
       }
-      _downloadService = await Downloadmanager.instance.service(client);
       return true;
     } catch (e) {
       aliveSetState(() {
@@ -118,38 +110,6 @@ abstract class _State extends MyState<MyHomePage> {
         builder: (_) => MyViewPage(
           client: client,
           categorie: categorie,
-          downloadService: _downloadService,
-        ),
-      ),
-    )
-        .then((value) {
-      if (isNotClosed) {
-        _resetReady();
-      }
-    });
-  }
-
-  _openUpload() {
-    debugPrint("upload");
-  }
-
-  _openDownload() {
-    if (_downloadService == null) {
-      BotToast.showText(
-        text: 'not supported platform: ${Platform.operatingSystem}',
-      );
-      return;
-    }
-    Navigator.of(context)
-        .push(
-      MaterialPageRoute(
-        builder: (_) => MyDownloadPage(
-          client: client,
-          downloadService: _downloadService!,
-          source: null,
-          categorie: null,
-          pageinfo: null,
-          scrollController: null,
         ),
       ),
     )
@@ -182,28 +142,6 @@ class _MyHomePageState extends _State {
           data: const MySelectAction(what: MyActionType.openDrawer),
         ),
         title: Text(S.of(context).appName),
-        actions: [
-          _downloadService == null
-              ? Container()
-              : FocusScope(
-                  node: focusScopeNode,
-                  child: IconButton(
-                    focusNode: createFocusNode('download'),
-                    tooltip: S.of(context).photo.download,
-                    onPressed: disabled ? null : _openDownload,
-                    icon: const Icon(Icons.cloud_download),
-                  ),
-                ),
-          FocusScope(
-            node: focusScopeNode,
-            child: IconButton(
-              focusNode: createFocusNode('upload'),
-              tooltip: S.of(context).photo.upload,
-              onPressed: disabled ? null : _openUpload,
-              icon: const Icon(Icons.cloud_upload),
-            ),
-          ),
-        ],
       ),
       drawer: MyDrawerView(
         client: client,
@@ -222,15 +160,7 @@ class _MyHomePageState extends _State {
                     final focused = focusedNode();
                     if (focused == null) {
                       return;
-                    } else if (evt.logicalKey == LogicalKeyboardKey.select) {
-                      if (focused.id == 'download') {
-                        _openDownload();
-                        return;
-                      } else if (focused.id == 'upload') {
-                        _openUpload();
-                        return;
-                      }
-                    }
+                    } else if (evt.logicalKey == LogicalKeyboardKey.select) {}
                     final data = focused.data;
                     if (data is MySelectAction) {
                       switch (data.what) {

@@ -1,11 +1,8 @@
-import 'dart:io';
-
 import 'package:bot_toast/bot_toast.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
-import 'package:piwigo/pages/download/download.dart';
 import 'package:piwigo/pages/download/source.dart';
 import 'package:piwigo/pages/home/fullscreen.dart';
 import 'package:piwigo/pages/home/select_action.dart';
@@ -18,7 +15,6 @@ import 'package:piwigo/pages/widget/state.dart';
 import 'package:piwigo/pages/widget/swiper/swiper.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
-import 'package:piwigo/service/download_service.dart';
 import 'package:piwigo/utils/wrap.dart';
 
 class MyViewPage extends StatefulWidget {
@@ -26,11 +22,9 @@ class MyViewPage extends StatefulWidget {
     Key? key,
     required this.client,
     required this.categorie,
-    required this.downloadService,
   }) : super(key: key);
   final Client client;
   final Categorie categorie;
-  final DownloadService? downloadService;
   @override
   _MyViewPageState createState() => _MyViewPageState();
 }
@@ -131,7 +125,6 @@ abstract class _ViewPageState extends MyState<MyViewPage> {
         builder: (_) => MyViewPage(
           client: client,
           categorie: _categories[i],
-          downloadService: widget.downloadService,
         ),
       ),
     )
@@ -164,41 +157,6 @@ abstract class _ViewPageState extends MyState<MyViewPage> {
             _scrollTo(i);
             focus!.requestFocus();
           }
-        }
-      }
-    });
-  }
-
-  _openUpload() {
-    debugPrint("upload");
-  }
-
-  _openDownload() {
-    if (widget.downloadService == null) {
-      BotToast.showText(
-        text: 'not supported platform: ${Platform.operatingSystem}',
-      );
-      return;
-    }
-    final length = _source.list.length;
-    Navigator.of(context)
-        .push(
-      MaterialPageRoute(
-        builder: (_) => MyDownloadPage(
-          client: client,
-          source: categorie.images < 1 || _pageinfo == null ? null : _source,
-          downloadService: widget.downloadService!,
-          categorie: widget.categorie,
-          pageinfo: _pageinfo,
-          scrollController: _scrollController,
-        ),
-      ),
-    )
-        .then((value) {
-      if (isNotClosed) {
-        _resetReady();
-        if (length != _source.list.length) {
-          setState(() {});
         }
       }
     });
@@ -260,26 +218,6 @@ class _MyViewPageState extends _ViewPageState
           context,
           data: const MySelectAction(what: MyActionType.arrowBack),
         ),
-        actions: [
-          FocusScope(
-            node: focusScopeNode,
-            child: IconButton(
-              focusNode: createFocusNode('download'),
-              tooltip: S.of(context).photo.download,
-              onPressed: disabled ? null : _openDownload,
-              icon: const Icon(Icons.cloud_download),
-            ),
-          ),
-          FocusScope(
-            node: focusScopeNode,
-            child: IconButton(
-              focusNode: createFocusNode('upload'),
-              tooltip: S.of(context).photo.upload,
-              onPressed: disabled ? null : _openUpload,
-              icon: const Icon(Icons.cloud_upload),
-            ),
-          ),
-        ],
         title: Text(categorie.name),
       ),
       body: MyKeyboardListener(
@@ -520,7 +458,8 @@ mixin _NetComponent on _ViewPageState {
       final pageinfo = images.pageInfo;
       debugPrint(
           'page result: page=${pageinfo.page} count=${pageinfo.count} images=${images.list.length}');
-      _completed = pageinfo.completed();
+      // _completed = pageinfo.completed();
+      _completed = images.list.isEmpty;
       _pageinfo = pageinfo;
       aliveSetState(() {
         _source.addAll(images.list);
@@ -628,16 +567,6 @@ mixin _KeyboardComponent on _ViewPageState {
   _onSelected(KeyEvent evt) {
     final focused = focusedNode();
     if (focused == null) {
-      return;
-    } else if (focused.id == "download") {
-      if (evt.logicalKey == LogicalKeyboardKey.select) {
-        _openDownload();
-      }
-      return;
-    } else if (focused.id == "upload") {
-      if (evt.logicalKey == LogicalKeyboardKey.select) {
-        _openUpload();
-      }
       return;
     }
     final data = focused.data;
