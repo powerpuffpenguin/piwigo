@@ -50,3 +50,20 @@ class SettingsVideo {
         desc: '旋轉',
       );
 }
+
+class SettingsPlay {
+  const SettingsPlay();
+
+  String get title => Intl.message(
+        'SettingsPlay.title',
+        desc: '頁面標題 : 播放設定',
+      );
+  String get autoplay => Intl.message(
+        'SettingsPlay.autoplay',
+        desc: '自動播放',
+      );
+  String get waitSeconds => Intl.message(
+        'SettingsPlay.waitSeconds',
+        desc: '等待秒數',
+      );
+}

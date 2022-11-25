@@ -1,5 +1,9 @@
+import 'dart:async';
+
+import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:piwigo/db/play.dart';
 import 'package:piwigo/pages/widget/listener/keyboard_listener.dart';
 import 'package:piwigo/pages/widget/photo_view.dart';
 import 'package:piwigo/pages/widget/swiper/swiper.dart';
@@ -24,11 +28,17 @@ class _MyFullscreenPageState extends State<MyFullscreenPage> {
   final _focusNode = FocusNode();
   final _subject = PublishSubject<KeyEvent>();
   final _showController = ValueNotifier<bool>(false);
+  final _autoplayController = ValueNotifier<bool>(MyPlay.instance.data.opend);
+  final _finish = StreamController<int>();
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: [SystemUiOverlay.bottom]);
+
+    _autoplayController.addListener(_autoplayControllerListener);
+
+    _init();
   }
 
   @override
@@ -36,10 +46,28 @@ class _MyFullscreenPageState extends State<MyFullscreenPage> {
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.edgeToEdge,
     );
+    _autoplayController.removeListener(_autoplayControllerListener);
     _focusNode.dispose();
     _subject.close();
+    _finish.close();
     PlayerManage.instance.pause();
     super.dispose();
+  }
+
+  _init() async {
+    await for (var i in _finish.stream) {
+      if (i != widget.controller.value || !_autoplayController.value) {
+        continue;
+      }
+      final val = i + 1;
+      if (val < widget.source.length) {
+        widget.controller.swipeTo(val);
+      }
+    }
+  }
+
+  _autoplayControllerListener() {
+    BotToast.showText(text: 'autoplay: ${_autoplayController.value}');
   }
 
   @override
@@ -90,6 +118,9 @@ class _MyFullscreenPageState extends State<MyFullscreenPage> {
             }
           } else if (evt.logicalKey == LogicalKeyboardKey.escape) {
             Navigator.of(context).pop();
+          } else if (evt.logicalKey == LogicalKeyboardKey.arrowUp) {
+            final ok = !_autoplayController.value;
+            _autoplayController.value = ok;
           } else if (evt.logicalKey == LogicalKeyboardKey.select ||
               evt.logicalKey == LogicalKeyboardKey.enter) {
             _showController.value = true;
@@ -110,6 +141,9 @@ class _MyFullscreenPageState extends State<MyFullscreenPage> {
               count: widget.source.length,
               swipe: details.swipe,
               showController: _showController,
+              autoplayController: _autoplayController,
+              sink: _finish.sink,
+              index: details.index,
             );
           },
         ),

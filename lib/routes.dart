@@ -11,7 +11,7 @@ class MyRoutes {
   static const String settingsLanguage = "/settings/language";
   static const String settingsTheme = "/settings/theme";
   static const String settingsVideo = "/settings/video";
-
+  static const String settingsPlay = "/settings/play";
   static const String account = "/account";
 
   static bool clearRoutes(Route<dynamic> route) => false;

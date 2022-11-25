@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:bot_toast/bot_toast.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_share_me/flutter_share_me.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:piwigo/db/play.dart';
 import 'package:piwigo/db/video.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/widget/spin.dart';
@@ -27,16 +29,22 @@ class MyPhotoView extends StatefulWidget {
     required this.count,
     required this.swipe,
     required this.showController,
+    required this.autoplayController,
     required this.isVideo,
     required this.stream,
+    required this.sink,
+    required this.index,
   }) : super(key: key);
+  final int index;
   final Stream<KeyEvent> stream;
   final PageImage image;
   final SwiperController controller;
   final int count;
   final bool swipe;
   final ValueNotifier<bool> showController;
+  final ValueNotifier<bool> autoplayController;
   final bool isVideo;
+  final StreamSink<int> sink;
   @override
   _MyPhotoViewState createState() => _MyPhotoViewState();
 }
@@ -45,13 +53,20 @@ typedef _PhotoQuality = List<Tuple2<String, Derivative>>;
 
 class _MyPhotoViewState extends UIState<MyPhotoView> {
   bool _showController = false;
+  bool _autoPlay = false;
   Player? _player;
   bool _playButton = false;
+  Timer? _timer;
   @override
   void initState() {
     super.initState();
     _showController = widget.showController.value;
     widget.showController.addListener(_showControllerListener);
+
+    if (!widget.swipe) {
+      _autoPlay = widget.autoplayController.value;
+      widget.autoplayController.addListener(_autoplayControllerListener);
+    }
 
     if (widget.isVideo && isSupportedVideo()) {
       addSubscription(PlayerManage.instance.stream.listen((event) {
@@ -66,6 +81,8 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
       if (player != null) {
         _playButton = false;
         _player = player;
+        player.controller.addListener(_playerListener);
+        player.controller.setLooping(false);
         if (!player.controller.value.isPlaying) {
           player.controller.play();
         }
@@ -73,17 +90,40 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
         _initPlayer();
       }
     }
+
+    if (!widget.swipe && !widget.isVideo) {
+      var seconds = MyPlay.instance.data.seconds;
+      if (seconds < 1) {
+        seconds = 1;
+      }
+      _timer = Timer.periodic(Duration(seconds: seconds), (timer) {
+        widget.sink.add(widget.index);
+      });
+    }
   }
 
   bool _create = false;
 
   @override
   void dispose() {
+    widget.autoplayController.removeListener(_autoplayControllerListener);
     widget.showController.removeListener(_showControllerListener);
     if (_create && (_player?.controller.value.isInitialized ?? false)) {
       _player!.controller.pause();
     }
+    _player?.controller.setLooping(true);
+    _player?.controller.removeListener(_playerListener);
+    _timer?.cancel();
     super.dispose();
+  }
+
+  _autoplayControllerListener() {
+    final val = widget.autoplayController.value;
+    if (val != _autoPlay) {
+      setState(() {
+        _autoPlay = val;
+      });
+    }
   }
 
   _showControllerListener() {
@@ -109,11 +149,31 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
         _create = true;
       });
       await player.initialize();
+      player.controller.addListener(_playerListener);
+      player.controller.setLooping(false);
       aliveSetState(() {
         player.controller.play();
       });
     } catch (e) {
       aliveSetState(() {});
+    }
+  }
+
+  _playerListener() {
+    final controller = _player?.controller;
+    if (controller == null) {
+      return;
+    }
+    final value = controller.value;
+    if (!value.isPlaying &&
+        value.position.inSeconds >= value.duration.inSeconds) {
+      if (widget.autoplayController.value) {
+        widget.sink.add(widget.index);
+      } else {
+        controller.seekTo(const Duration(seconds: 0)).then((value) {
+          controller.play();
+        });
+      }
     }
   }
 
@@ -322,6 +382,7 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
       count: widget.count,
       quality: quality,
       value: value,
+      autoplayController: widget.autoplayController,
       onChanged: (v) {
         setState(() {
           _value = v;
@@ -340,6 +401,7 @@ class _MyPhotoController extends StatefulWidget {
     required this.quality,
     required this.value,
     required this.onChanged,
+    required this.autoplayController,
   }) : super(key: key);
   final PageImage image;
   final SwiperController controller;
@@ -347,6 +409,7 @@ class _MyPhotoController extends StatefulWidget {
   final _PhotoQuality quality;
   final int value;
   final ValueChanged<int> onChanged;
+  final ValueNotifier<bool> autoplayController;
   @override
   _MyPhotoControllerState createState() => _MyPhotoControllerState();
 }
@@ -415,6 +478,17 @@ class _MyPhotoControllerState extends State<_MyPhotoController> {
           ),
           Row(
             children: [
+              IconButton(
+                onPressed: () {
+                  widget.autoplayController.value =
+                      !widget.autoplayController.value;
+                },
+                tooltip: 'autoplay',
+                color: Colors.white,
+                icon: widget.autoplayController.value
+                    ? const Icon(Icons.check_box_outlined)
+                    : const Icon(Icons.check_box_outline_blank),
+              ),
               IconButton(
                 color: Colors.white,
                 icon: const Icon(Icons.share),

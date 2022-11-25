@@ -9,6 +9,7 @@ import 'package:piwigo/pages/account/account.dart';
 import 'package:piwigo/pages/load/add.dart';
 import 'package:piwigo/pages/load/load.dart';
 import 'package:piwigo/pages/settings/language.dart';
+import 'package:piwigo/pages/settings/play.dart';
 import 'package:piwigo/pages/settings/settings.dart';
 import 'package:piwigo/pages/settings/theme.dart';
 import 'package:piwigo/pages/settings/video.dart';
@@ -125,6 +126,7 @@ class _MyAppState extends UIState<MyApp> {
               const MySettingsLanguagePage(),
           MyRoutes.settingsTheme: (context) => const MySettingsThemePage(),
           MyRoutes.settingsVideo: (context) => const MySettingsVideoPage(),
+          MyRoutes.settingsPlay: (context) => const MySettingsPlayPage(),
         },
       ),
     );

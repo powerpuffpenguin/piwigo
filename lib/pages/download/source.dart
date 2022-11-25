@@ -1,12 +1,6 @@
-import 'package:dio/dio.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
-import 'package:piwigo/rpc/webapi/client.dart';
 
 class Source {
-  /// 是否正在請求頁面數據
-  bool _request = false;
-  bool get request => _request;
-
   final list = <PageImage>[];
   final keys = <String, PageImage>{};
   PageInfo? pageinfo;

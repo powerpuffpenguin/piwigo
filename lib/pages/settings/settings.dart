@@ -12,6 +12,7 @@ class _FocusID {
   static const language = 'language';
   static const theme = 'theme';
   static const video = 'video';
+  static const play = 'play';
 }
 
 class MySettingsPage extends StatefulWidget {
@@ -43,6 +44,10 @@ abstract class _State extends MyState<MySettingsPage> {
 
   void _openVideo() {
     Navigator.of(context).pushNamed(MyRoutes.settingsVideo);
+  }
+
+  void _openPlay() {
+    Navigator.of(context).pushNamed(MyRoutes.settingsPlay);
   }
 }
 
@@ -121,6 +126,15 @@ class _MySettingsPageState extends _State with _KeyboardComponent {
               onTap: _openVideo,
             ),
           ),
+          FocusScope(
+            node: focusScopeNode,
+            child: ListTile(
+              focusNode: createFocusNode(_FocusID.play),
+              leading: const Icon(Icons.play_circle_fill),
+              title: Text(S.of(context).settingsPlay.title),
+              onTap: _openPlay,
+            ),
+          ),
         ],
       ),
     );
@@ -152,6 +166,9 @@ mixin _KeyboardComponent on _State {
         break;
       case _FocusID.video:
         _openVideo();
+        break;
+      case _FocusID.play:
+        _openPlay();
         break;
     }
   }
