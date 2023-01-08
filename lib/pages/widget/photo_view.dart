@@ -67,8 +67,11 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
       _autoPlay = widget.autoplayController.value;
       widget.autoplayController.addListener(_autoplayControllerListener);
     }
-
-    if (widget.isVideo && isSupportedVideo()) {
+    if (!widget.isVideo) {
+      if (!widget.swipe) {
+        PlayerManage.instance.pause();
+      }
+    } else if (isSupportedVideo()) {
       addSubscription(PlayerManage.instance.stream.listen((event) {
         if (event == _player) {
           setState(() {
@@ -81,8 +84,10 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
       if (player != null) {
         _playButton = false;
         _player = player;
+        if (isClosed) {
+          return;
+        }
         player.controller.addListener(_playerListener);
-        player.controller.setLooping(false);
         if (!player.controller.value.isPlaying) {
           player.controller.play();
         }
@@ -111,7 +116,6 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
     if (_create && (_player?.controller.value.isInitialized ?? false)) {
       _player!.controller.pause();
     }
-    _player?.controller.setLooping(true);
     _player?.controller.removeListener(_playerListener);
     _timer?.cancel();
     super.dispose();
@@ -149,8 +153,8 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
         _create = true;
       });
       await player.initialize();
+      checkAlive();
       player.controller.addListener(_playerListener);
-      player.controller.setLooping(false);
       aliveSetState(() {
         player.controller.play();
       });
@@ -170,10 +174,20 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
       if (widget.autoplayController.value) {
         widget.sink.add(widget.index);
       } else {
-        controller.seekTo(const Duration(seconds: 0)).then((value) {
-          controller.play();
-        });
+        _replay(controller);
       }
+    }
+  }
+
+  _replay(VideoPlayerController controller) async {
+    try {
+      await controller.seekTo(const Duration(seconds: 0));
+      checkAlive();
+      await Future.delayed(const Duration(milliseconds: 100));
+      checkAlive();
+      await controller.play();
+    } catch (e) {
+      debugPrint('replay: $e');
     }
   }
 

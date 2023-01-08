@@ -12,8 +12,7 @@ class Player {
       : controller = VideoPlayerController.network(url,
             videoPlayerOptions: VideoPlayerOptions(
               mixWithOthers: true,
-            ))
-          ..setLooping(true);
+            ));
   Completer<void>? _completer;
   Future<void> initialize() async {
     if (_completer != null) {
