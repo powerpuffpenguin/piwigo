@@ -33,4 +33,9 @@
             android:value="2" />
     </application>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- tv settings https://developer.android.com/distribute/best-practices/launch/distribute-tv?hl=zh-cn -->
+    <uses-feature android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen"
+        android:required="false" />
 </manifest>
