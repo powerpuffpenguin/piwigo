@@ -3,6 +3,8 @@
 This is a third-party client of piwigo, the main purpose is to support android
 tv, so that the photos/videos on piwigo can be played on my living room TV
 
+[Google Play Store](https://play.google.com/store/apps/details?id=com.king011.piwigo)
+
 # sign in
 
 The first step after opening the app is to enter your piwigo server address,
