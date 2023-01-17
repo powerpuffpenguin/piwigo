@@ -112,6 +112,10 @@ abstract class RpcClient {
   }
 
   Future<void> login({CancelToken? cancelToken}) async {
+    if (name == "" || password == "") {
+      //guest
+      return;
+    }
     try {
       final resp = await dio.post(
         path,
