@@ -44,7 +44,7 @@ class Categorie {
   /// 封面圖地址
   String cover;
 
-  Categorie.fromJson(Map<String, dynamic> json)
+  Categorie.fromJson(Map<String, dynamic> json, Uri uri)
       : id = json['id'].toString(),
         name = json['name'] ?? '',
         comment = json['comment'] ?? '',
@@ -53,7 +53,26 @@ class Categorie {
         images = json['nb_images'] ?? 0,
         totalImages = json['total_nb_images'] ?? 0,
         categories = json['nb_categories'] ?? 0,
-        cover = json['tn_url'] ?? '';
+        cover = copyUri(uri, json['tn_url'] ?? '');
+}
+
+String copyUri(Uri uri, String src) {
+  if (src == "") {
+    return src;
+  }
+  final s = Uri.parse(src);
+  if (s.host == uri.host) {
+    return Uri(
+      scheme: uri.scheme,
+      host: uri.host,
+      port: uri.port,
+      userInfo: s.userInfo,
+      path: s.path,
+      query: s.query == '' ? null : s.query,
+      fragment: s.fragment == '' ? null : s.fragment,
+    ).toString();
+  }
+  return src;
 }
 
 class PageInfo {
@@ -106,8 +125,8 @@ class Derivative {
     required this.width,
     required this.height,
   });
-  Derivative.fromJson(Map<String, dynamic> json)
-      : url = json['url'] ?? '',
+  Derivative.fromJson(Map<String, dynamic> json, Uri uri)
+      : url = copyUri(uri, json['url'] ?? ''),
         width = intFromJson(json['width']),
         height = intFromJson(json['height']);
 
@@ -125,16 +144,16 @@ class Derivatives {
   Derivative largeX;
   Derivative largeXX;
 
-  Derivatives.fromJson(Map<String, dynamic> json)
-      : square = Derivative.fromJson(json['square']),
-        thumb = Derivative.fromJson(json['thumb']),
-        smallXX = Derivative.fromJson(json['2small']),
-        smallX = Derivative.fromJson(json['xsmall']),
-        small = Derivative.fromJson(json['small']),
-        medium = Derivative.fromJson(json['medium']),
-        large = Derivative.fromJson(json['large']),
-        largeX = Derivative.fromJson(json['xlarge']),
-        largeXX = Derivative.fromJson(json['xxlarge']);
+  Derivatives.fromJson(Map<String, dynamic> json, Uri uri)
+      : square = Derivative.fromJson(json['square'], uri),
+        thumb = Derivative.fromJson(json['thumb'], uri),
+        smallXX = Derivative.fromJson(json['2small'], uri),
+        smallX = Derivative.fromJson(json['xsmall'], uri),
+        small = Derivative.fromJson(json['small'], uri),
+        medium = Derivative.fromJson(json['medium'], uri),
+        large = Derivative.fromJson(json['large'], uri),
+        largeX = Derivative.fromJson(json['xlarge'], uri),
+        largeXX = Derivative.fromJson(json['xxlarge'], uri);
 }
 
 class PageImage {
@@ -179,19 +198,19 @@ class PageImage {
   }
 
   // categories:Array 所屬相冊
-  static List<PageImage> fromJsonList(List? v) {
-    return v?.map((e) => PageImage.fromJson(e)).toList() ?? <PageImage>[];
+  static List<PageImage> fromJsonList(List? v, Uri uri) {
+    return v?.map((e) => PageImage.fromJson(e, uri)).toList() ?? <PageImage>[];
   }
 
-  PageImage.fromJson(Map<String, dynamic> json)
+  PageImage.fromJson(Map<String, dynamic> json, Uri uri)
       : id = json['id']?.toString() ?? '0',
         width = json['width'] ?? 0,
         height = json['height'] ?? 0,
         file = json['file'] ?? '',
         name = json['name'] ?? '',
         comment = json['comment'] ?? '',
-        url = json['element_url'] ?? '',
-        derivatives = Derivatives.fromJson(json['derivatives']);
+        url = copyUri(uri, json['element_url'] ?? ''),
+        derivatives = Derivatives.fromJson(json['derivatives'], uri);
 
   static String getSquare(PageImage node) => node.derivatives.square.url;
   static String getThumb(PageImage node) => node.derivatives.thumb.url;
@@ -207,9 +226,9 @@ class PageImage {
 class PageImages {
   PageInfo pageInfo;
   List<PageImage> list;
-  PageImages.fromJson(Map<String, dynamic> json)
+  PageImages.fromJson(Map<String, dynamic> json, Uri uri)
       : pageInfo = PageInfo.fromJson(json['paging']),
-        list = PageImage.fromJsonList(json['images']);
+        list = PageImage.fromJsonList(json['images'], uri);
 }
 
 mixin Categories on RpcClient {
@@ -232,11 +251,13 @@ mixin Categories on RpcClient {
         ),
         cancelToken: cancelToken,
       );
+
       final obj = decodeResponse(resp.data);
       final List? list = obj['result']['categories'];
       final result = <Categorie>[];
+      final uri = Uri.parse(dio.options.baseUrl);
       list?.forEach((v) {
-        final node = Categorie.fromJson(v);
+        final node = Categorie.fromJson(v, uri);
         if (node.id != parent) {
           result.add(node);
           // debugPrint('cover: ${node.cover}');
@@ -273,7 +294,7 @@ mixin Categories on RpcClient {
         cancelToken: cancelToken,
       );
       final obj = decodeResponse(resp.data);
-      return PageImages.fromJson(obj['result']);
+      return PageImages.fromJson(obj['result'], Uri.parse(dio.options.baseUrl));
     } on DioError catch (e) {
       throw Exception('${e.message} ${e.response?.data}');
     }

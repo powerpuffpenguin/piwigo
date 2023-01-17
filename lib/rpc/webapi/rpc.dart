@@ -48,6 +48,7 @@ class ImageSize extends Enum {
   const ImageSize._(
     int value,
     String name, {
+    // ignore: unused_element
     this.unknow = false,
   }) : super(value, name);
 

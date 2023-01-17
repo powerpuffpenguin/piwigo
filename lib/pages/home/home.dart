@@ -13,7 +13,6 @@ import 'package:piwigo/pages/widget/state.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/rpc/webapi/client.dart';
 import 'package:piwigo/utils/wrap.dart';
-import './select_action.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({
