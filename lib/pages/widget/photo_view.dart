@@ -96,15 +96,24 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
         _initPlayer();
       }
     }
+  }
 
+  bool _cannext = true;
+  _autonext() {
     if (!widget.swipe && !widget.isVideo) {
       var seconds = MyPlay.instance.data.seconds;
       if (seconds < 1) {
         seconds = 1;
       }
-      _timer = Timer.periodic(Duration(seconds: seconds), (timer) {
-        widget.sink.add(widget.index);
-      });
+      if (_cannext) {
+        _cannext = false;
+        debugPrint("------next timer $seconds");
+        _timer = Timer.periodic(Duration(seconds: seconds), (timer) {
+          if (isNotClosed) {
+            widget.sink.add(widget.index);
+          }
+        });
+      }
     }
   }
 
@@ -300,6 +309,24 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
               tag: "photoView_${widget.image.id}",
             ),
             imageProvider: NetworkImage(qual[value].item2.url),
+            loadingBuilder: (context, evt) {
+              final expected = evt?.expectedTotalBytes ?? 0;
+              double value = 0;
+              if (expected != 0) {
+                final cumulative = evt?.cumulativeBytesLoaded ?? 0;
+                if (cumulative == expected) {
+                  value = 1;
+                  _autonext();
+                } else {
+                  value = cumulative / expected;
+                }
+              }
+              return Center(
+                child: CircularProgressIndicator(
+                  value: value,
+                ),
+              );
+            },
           ),
           widget.isVideo ? _buildVideoFlag(context) : Container(),
           _buildFullscreenControllerBackground(context),
