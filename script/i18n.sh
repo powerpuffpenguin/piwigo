@@ -56,7 +56,7 @@ if [[ "$arb" == 1 ]];then
     fi
     cp ../../lib/i18n ./lib/i18n -r
     echo flutter-i18n arb
-    flutter-i18n arb
+    ../flutter-i18n arb
     cp ./lib/i18n/*.arb ../../lib/i18n/
     exit 0
 fi
@@ -76,7 +76,7 @@ if [[ "$dart" == 1 ]];then
     fi
 
     echo flutter-i18n dart
-    flutter-i18n dart
+    ../flutter-i18n dart
     if [[ -f ./lib/i18n/messages_all.dart.fix ]];then
         mv ./lib/i18n/messages_all.dart.fix ./lib/i18n/messages_all.dart
     fi
