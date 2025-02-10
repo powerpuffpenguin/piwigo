@@ -131,7 +131,12 @@ class Derivative {
         width = intFromJson(json['width']),
         height = intFromJson(json['height']);
 
-  bool match(int w, int h) => width >= w || height >= h;
+  bool match(int w, int h, bool quality) {
+    if (quality) {
+      return width >= w && height >= h;
+    }
+    return width >= w || height >= h;
+  }
 }
 
 class Derivatives {
@@ -181,18 +186,18 @@ class PageImage {
   /// 衍生的照片
   Derivatives derivatives;
 
-  Derivative getDerivative(int width, int height) {
-    if (derivatives.smallXX.match(width, height)) {
+  Derivative getDerivative(int width, int height, bool quality) {
+    if (derivatives.smallXX.match(width, height, quality)) {
       return derivatives.smallXX;
-    } else if (derivatives.smallX.match(width, height)) {
+    } else if (derivatives.smallX.match(width, height, quality)) {
       return derivatives.smallX;
-    } else if (derivatives.small.match(width, height)) {
+    } else if (derivatives.small.match(width, height, quality)) {
       return derivatives.small;
-    } else if (derivatives.medium.match(width, height)) {
+    } else if (derivatives.medium.match(width, height, quality)) {
       return derivatives.medium;
-    } else if (derivatives.large.match(width, height)) {
+    } else if (derivatives.large.match(width, height, quality)) {
       return derivatives.large;
-    } else if (derivatives.largeX.match(width, height)) {
+    } else if (derivatives.largeX.match(width, height, quality)) {
       return derivatives.largeX;
     }
     return derivatives.largeXX;

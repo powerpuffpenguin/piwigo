@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:piwigo/db/db.dart';
 import 'package:piwigo/db/play.dart';
+import 'package:piwigo/db/quality.dart';
 import 'package:piwigo/db/settings.dart';
 import 'package:piwigo/db/video.dart';
 import 'package:piwigo/environment.dart';
@@ -35,6 +36,7 @@ class _MyLoadPageState extends UIState<MyLoadPage> {
     try {
       await MyVideo.instance.load();
       await MyPlay.instance.load();
+      await MyQuality.instance.load();
 
       final id = await MySettings.instance.getAccount();
       checkAlive();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:piwigo/db/quality.dart';
 import 'package:piwigo/pages/widget/video.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
 import 'package:piwigo/utils/path.dart';
@@ -29,18 +30,29 @@ class MyImage extends StatelessWidget {
         focusNode: focusNode,
       );
     }
-    final mediaQuery = MediaQuery.of(context);
-    final devicePixelRatio = mediaQuery.devicePixelRatio;
+    var w = width;
+    var h = height;
+    var quality = false;
+    switch (MyQuality.instance.data) {
+      case qualityFast:
+        break;
+      case qualityNormal:
+        w *= MediaQuery.of(context).devicePixelRatio;
+        h *= MediaQuery.of(context).devicePixelRatio;
+        break;
+      default:
+        quality = true;
+        w *= MediaQuery.of(context).devicePixelRatio;
+        h *= MediaQuery.of(context).devicePixelRatio;
+        break;
+    }
     return _ImageView(
       tag: "photoView_${image.id}",
       onTap: onTap,
       focusNode: focusNode,
       width: width,
       height: height,
-      url: image
-          .getDerivative((width * devicePixelRatio).toInt(),
-              (height * devicePixelRatio).toInt())
-          .url,
+      url: image.getDerivative(w.toInt(), h.toInt(), quality).url,
     );
   }
 

@@ -67,3 +67,29 @@ class SettingsPlay {
         desc: '等待秒數',
       );
 }
+
+class SettingsQuality {
+  const SettingsQuality();
+
+  String get title => Intl.message(
+        'SettingsQuality.title',
+        desc: '頁面標題 : 照片質量',
+      );
+
+  String get fast => Intl.message(
+        'SettingsQuality.fast',
+        desc: '優化速度',
+      );
+  String get normal => Intl.message(
+        'SettingsQuality.normal',
+        desc: '普通 (建議手機)',
+      );
+  String get quality => Intl.message(
+        'SettingsQuality.quality',
+        desc: '優化品質 (默認)',
+      );
+  String get raw => Intl.message(
+        'SettingsQuality.raw',
+        desc: '原始圖片(建議 TV)',
+      );
+}

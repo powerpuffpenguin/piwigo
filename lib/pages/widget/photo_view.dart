@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:piwigo/db/play.dart';
+import 'package:piwigo/db/quality.dart';
 import 'package:piwigo/db/video.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/widget/spin.dart';
@@ -235,14 +236,42 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
   int _getValue(BuildContext context) {
     if (_value == null) {
       final qual = quality;
+      switch (MyQuality.instance.data) {
+        case qualityRaw:
+          _value = qual.length - 1;
+          return _value!;
+      }
       final mediaQuery = MediaQuery.of(context);
-      final size = mediaQuery.size * mediaQuery.devicePixelRatio;
-      for (var i = 0; i < qual.length - 1; i++) {
-        final derivative = qual[i].item2;
-        if (derivative.width >= size.width ||
-            derivative.height >= size.height) {
-          _value = i;
-          return i;
+      var size = mediaQuery.size;
+      var and = false;
+      switch (MyQuality.instance.data) {
+        case qualityFast:
+          break;
+        case qualityNormal:
+          size *= mediaQuery.devicePixelRatio;
+          break;
+        default:
+          size *= mediaQuery.devicePixelRatio;
+          and = true;
+          break;
+      }
+      if (and) {
+        for (var i = 0; i < qual.length - 1; i++) {
+          final derivative = qual[i].item2;
+          if (derivative.width >= size.width &&
+              derivative.height >= size.height) {
+            _value = i;
+            return i;
+          }
+        }
+      } else {
+        for (var i = 0; i < qual.length - 1; i++) {
+          final derivative = qual[i].item2;
+          if (derivative.width >= size.width ||
+              derivative.height >= size.height) {
+            _value = i;
+            return i;
+          }
         }
       }
       _value = qual.length - 1;

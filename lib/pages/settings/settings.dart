@@ -13,6 +13,7 @@ class _FocusID {
   static const theme = 'theme';
   static const video = 'video';
   static const play = 'play';
+  static const quality = 'quality';
 }
 
 class MySettingsPage extends StatefulWidget {
@@ -40,6 +41,10 @@ abstract class _State extends MyState<MySettingsPage> {
 
   void _openTheme() {
     Navigator.of(context).pushNamed(MyRoutes.settingsTheme);
+  }
+
+  void _openQuality() {
+    Navigator.of(context).pushNamed(MyRoutes.settingsQuality);
   }
 
   void _openVideo() {
@@ -120,6 +125,15 @@ class _MySettingsPageState extends _State with _KeyboardComponent {
           FocusScope(
             node: focusScopeNode,
             child: ListTile(
+              focusNode: createFocusNode(_FocusID.quality),
+              leading: const Icon(Icons.image),
+              title: Text(S.of(context).settingsQuality.title),
+              onTap: _openQuality,
+            ),
+          ),
+          FocusScope(
+            node: focusScopeNode,
+            child: ListTile(
               focusNode: createFocusNode(_FocusID.video),
               leading: const Icon(Icons.video_settings),
               title: Text(S.of(context).settingsVideo.title),
@@ -163,6 +177,9 @@ mixin _KeyboardComponent on _State {
         break;
       case _FocusID.theme:
         _openTheme();
+        break;
+      case _FocusID.quality:
+        _openQuality();
         break;
       case _FocusID.video:
         _openVideo();

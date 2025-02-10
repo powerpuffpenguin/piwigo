@@ -29,6 +29,7 @@ mixin AppResource {
   SettingsLanguage get settingsLanguage => const SettingsLanguage();
   SettingsVideo get settingsVideo => const SettingsVideo();
   SettingsPlay get settingsPlay => const SettingsPlay();
+  SettingsQuality get settingsQuality => const SettingsQuality();
 
   Download get download => const Download();
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:piwigo/db/quality.dart';
 import 'package:piwigo/pages/widget/spin.dart';
 import 'package:piwigo/pages/widget/video/player_manage.dart';
 import 'package:piwigo/rpc/webapi/categories.dart';
@@ -160,14 +161,25 @@ class _MyVideoState extends UIState<MyVideo> {
   }
 
   Widget _buildInit(BuildContext context) {
-    final theme = Theme.of(context);
-    final mediaQuery = MediaQuery.of(context);
-    final devicePixelRatio = mediaQuery.devicePixelRatio;
-    final url = image
-        .getDerivative((widget.width * devicePixelRatio).toInt(),
-            (widget.height * devicePixelRatio).toInt())
-        .url;
+    var w = widget.width;
+    var h = widget.height;
+    var quality = false;
+    switch (MyQuality.instance.data) {
+      case qualityFast:
+        break;
+      case qualityNormal:
+        w *= MediaQuery.of(context).devicePixelRatio;
+        h *= MediaQuery.of(context).devicePixelRatio;
+        break;
+      default:
+        quality = true;
+        w *= MediaQuery.of(context).devicePixelRatio;
+        h *= MediaQuery.of(context).devicePixelRatio;
+        break;
+    }
+    final url = image.getDerivative(w.toInt(), h.toInt(), quality).url;
 
+    final theme = Theme.of(context);
     return Ink(
       width: width,
       height: height,

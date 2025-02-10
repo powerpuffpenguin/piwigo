@@ -1,105 +1,21 @@
 {
   "@@last_modified": "2021-10-21T16:50:50.762691",
   "@@locale": "zh_TW",
-  "Photo.resize": "圖片大小",
-  "@Photo.resize": {
-    "description": "圖片大小",
+  "Download.categorie": "下載相冊",
+  "@Download.categorie": {
+    "description": "下載相冊",
     "type": "text",
     "placeholders": {}
   },
-  "Home.exitTitle": "關閉系統",
-  "@Home.exitTitle": {
-    "description": "導航按鈕 : 關閉系統",
+  "Photo.before": "上一個",
+  "@Photo.before": {
+    "description": "上一個",
     "type": "text",
     "placeholders": {}
   },
-  "Photo.original": "原始",
-  "@Photo.original": {
-    "description": "原始",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Account.manage": "管理帳戶",
-  "@Account.manage": {
-    "description": "管理帳戶 Manage Accounts",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Reviews.noThanks": "不用了",
-  "@Reviews.noThanks": {
-    "description": "不用了",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Home.search": "搜索",
-  "@Home.search": {
-    "description": "搜索",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Reviews.fantastical": "太棒了！ 您想在商店給我們評級嗎？",
-  "@Reviews.fantastical": {
-    "description": "太棒了！ 您想在商店給我們評級嗎？",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.save": "保存",
-  "@App.save": {
-    "description": "保存 按鈕/提示文本",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.issuesHelp": "尋求幫助",
-  "@App.issuesHelp": {
-    "description": "尋求幫助 按鈕/提示文本",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Reviews.Dismiss": "不再詢問",
-  "@Reviews.Dismiss": {
-    "description": "不再詢問",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Settings.language": "語言設定",
-  "@Settings.language": {
-    "description": "語言設定",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Settings.title": "系統設定",
-  "@Settings.title": {
-    "description": "頁面標題 : 系統設定",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Reviews.like": "喜歡",
-  "@Reviews.like": {
-    "description": "喜歡",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Photo.next": "下一個",
-  "@Photo.next": {
-    "description": "下一個",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.share": "分享",
-  "@App.share": {
-    "description": "分享 按鈕/提示文本",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.refresh": "刷新",
-  "@App.refresh": {
-    "description": "刷新 按鈕/提示文本",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Reviews.MayBeNextTime": "下次評價",
-  "@Reviews.MayBeNextTime": {
-    "description": "下次再評價",
+  "Account.delete": "刪除帳戶",
+  "@Account.delete": {
+    "description": "刪除帳戶 按鈕/提示文本/標題",
     "type": "text",
     "placeholders": {}
   },
@@ -109,15 +25,39 @@
     "type": "text",
     "placeholders": {}
   },
-  "Settings.systemDefault": "系統默認",
-  "@Settings.systemDefault": {
-    "description": "系統默認",
+  "SettingsVideo.title": "視頻設定",
+  "@SettingsVideo.title": {
+    "description": "頁面標題 : 視頻設定",
     "type": "text",
     "placeholders": {}
   },
-  "App.settings": "設定",
-  "@App.settings": {
-    "description": "設定 按鈕/提示文本",
+  "Home.exitContext": "確定要關閉系統嗎？",
+  "@Home.exitContext": {
+    "description": "確定要關閉系統嗎？",
+    "type": "text",
+    "placeholders": {}
+  },
+  "SettingsPlay.title": "播放設定",
+  "@SettingsPlay.title": {
+    "description": "頁面標題 : 播放設定",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Download.photo": "下載照片",
+  "@Download.photo": {
+    "description": "下載照片",
+    "type": "text",
+    "placeholders": {}
+  },
+  "SettingsPlay.waitSeconds": "等待秒數",
+  "@SettingsPlay.waitSeconds": {
+    "description": "等待秒數",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.video": "視頻",
+  "@Photo.video": {
+    "description": "視頻",
     "type": "text",
     "placeholders": {}
   },
@@ -131,33 +71,63 @@
       }
     }
   },
-  "Download.categorie": "下載相冊",
-  "@Download.categorie": {
-    "description": "下載相冊",
+  "App.loading": "正在加載中...",
+  "@App.loading": {
+    "description": "正在加載中... 提示文本",
     "type": "text",
     "placeholders": {}
   },
-  "Photo.download": "下載",
-  "@Photo.download": {
-    "description": "下載",
+  "SettingsQuality.fast": "優化速度",
+  "@SettingsQuality.fast": {
+    "description": "優化速度",
     "type": "text",
     "placeholders": {}
   },
-  "App.saveSucess": "數據已保存",
-  "@App.saveSucess": {
-    "description": "提示信息 : 數據已保存",
+  "Account.edit": "編輯帳戶",
+  "@Account.edit": {
+    "description": "編輯帳戶 按鈕/提示文本/標題",
     "type": "text",
     "placeholders": {}
   },
-  "Account.password": "密碼",
-  "@Account.password": {
-    "description": "密碼",
+  "App.home": "首頁",
+  "@App.home": {
+    "description": "首頁 按鈕/提示文本",
     "type": "text",
     "placeholders": {}
   },
-  "SettingsVideo.reverse": "反轉寬高比",
-  "@SettingsVideo.reverse": {
-    "description": "反轉寬高比",
+  "Photo.small": "小",
+  "@Photo.small": {
+    "description": "小",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Reviews.doYouLike": "到目前為止，您如何看待我們的產品？",
+  "@Reviews.doYouLike": {
+    "description": "到目前為止，您如何看待我們的產品？",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Reviews.like": "喜歡",
+  "@Reviews.like": {
+    "description": "喜歡",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.save": "保存",
+  "@App.save": {
+    "description": "保存 按鈕/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.medium": "中",
+  "@Photo.medium": {
+    "description": "中",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Account.manage": "管理帳戶",
+  "@Account.manage": {
+    "description": "管理帳戶 Manage Accounts",
     "type": "text",
     "placeholders": {}
   },
@@ -167,15 +137,27 @@
     "type": "text",
     "placeholders": {}
   },
-  "Home.name": "名稱",
-  "@Home.name": {
-    "description": "搜索名称",
+  "App.reivew": "提供意見",
+  "@App.reivew": {
+    "description": "提供意見 按鈕/提示文本",
     "type": "text",
     "placeholders": {}
   },
-  "Account.url": "網址",
-  "@Account.url": {
-    "description": "網址",
+  "Reviews.dislike": "不喜歡",
+  "@Reviews.dislike": {
+    "description": "不喜歡",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.shareTo": "分享到",
+  "@App.shareTo": {
+    "description": "分享到 按鈕/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.largeXX": "巨大",
+  "@Photo.largeXX": {
+    "description": "巨大",
     "type": "text",
     "placeholders": {}
   },
@@ -185,9 +167,45 @@
     "type": "text",
     "placeholders": {}
   },
-  "App.reivew": "提供意見",
-  "@App.reivew": {
-    "description": "提供意見 按鈕/提示文本",
+  "SettingsVideo.rotate": "旋轉",
+  "@SettingsVideo.rotate": {
+    "description": "旋轉",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.openInBrowser": "在瀏覽器中開啓",
+  "@App.openInBrowser": {
+    "description": "在瀏覽器中開啓 按鈕/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
+  "SettingsQuality.normal": "普通 (建議手機)",
+  "@SettingsQuality.normal": {
+    "description": "普通 (建議手機)",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.share": "分享",
+  "@App.share": {
+    "description": "分享 按鈕/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Reviews.Dismiss": "不再詢問",
+  "@Reviews.Dismiss": {
+    "description": "不再詢問",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.resize": "圖片大小",
+  "@Photo.resize": {
+    "description": "圖片大小",
+    "type": "text",
+    "placeholders": {}
+  },
+  "SettingsQuality.title": "照片質量",
+  "@SettingsQuality.title": {
+    "description": "頁面標題 : 照片質量",
     "type": "text",
     "placeholders": {}
   },
@@ -197,15 +215,15 @@
     "type": "text",
     "placeholders": {}
   },
-  "App.submit": "提交",
-  "@App.submit": {
-    "description": "提交 按鈕/提示文本",
+  "SettingsQuality.raw": "原始圖片(建議 TV)",
+  "@SettingsQuality.raw": {
+    "description": "原始圖片(建議 TV)",
     "type": "text",
     "placeholders": {}
   },
-  "Reviews.Sure": "當然！",
-  "@Reviews.Sure": {
-    "description": "當然！",
+  "Account.add": "添加帳戶",
+  "@Account.add": {
+    "description": "添加帳戶 按鈕/提示文本/標題",
     "type": "text",
     "placeholders": {}
   },
@@ -219,87 +237,51 @@
       }
     }
   },
-  "Photo.large": "大",
-  "@Photo.large": {
-    "description": "大",
+  "App.refresh": "刷新",
+  "@App.refresh": {
+    "description": "刷新 按鈕/提示文本",
     "type": "text",
     "placeholders": {}
   },
-  "Account.edit": "編輯帳戶",
-  "@Account.edit": {
-    "description": "編輯帳戶 按鈕/提示文本/標題",
+  "Reviews.MayBeNextTime": "下次評價",
+  "@Reviews.MayBeNextTime": {
+    "description": "下次再評價",
     "type": "text",
     "placeholders": {}
   },
-  "SettingsVideo.title": "視頻設定",
-  "@SettingsVideo.title": {
-    "description": "頁面標題 : 視頻設定",
+  "Home.nameNotSupportEmpty": "動漫名稱不能爲空",
+  "@Home.nameNotSupportEmpty": {
+    "description": "搜索名称不能为空",
     "type": "text",
     "placeholders": {}
   },
-  "Error.title": "錯誤",
-  "@Error.title": {
-    "description": "頁面標題 錯誤信息顯示",
+  "Home.search": "搜索",
+  "@Home.search": {
+    "description": "搜索",
     "type": "text",
     "placeholders": {}
   },
-  "Download.photo": "下載照片",
-  "@Download.photo": {
-    "description": "下載照片",
+  "Photo.smallXX": "極小",
+  "@Photo.smallXX": {
+    "description": "極小",
     "type": "text",
     "placeholders": {}
   },
-  "SettingsPlay.autoplay": "自動播放",
-  "@SettingsPlay.autoplay": {
-    "description": "自動播放",
+  "App.submit": "提交",
+  "@App.submit": {
+    "description": "提交 按鈕/提示文本",
     "type": "text",
     "placeholders": {}
   },
-  "Photo.medium": "中",
-  "@Photo.medium": {
-    "description": "中",
+  "Photo.download": "下載",
+  "@Photo.download": {
+    "description": "下載",
     "type": "text",
     "placeholders": {}
   },
-  "Photo.largeXX": "巨大",
-  "@Photo.largeXX": {
-    "description": "巨大",
-    "type": "text",
-    "placeholders": {}
-  },
-  "SettingsPlay.waitSeconds": "等待秒數",
-  "@SettingsPlay.waitSeconds": {
-    "description": "等待秒數",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Account.delete": "刪除帳戶",
-  "@Account.delete": {
-    "description": "刪除帳戶 按鈕/提示文本/標題",
-    "type": "text",
-    "placeholders": {}
-  },
-  "App.sucess": "成功",
-  "@App.sucess": {
-    "description": "成功 標題/提示文本",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Account.add": "添加帳戶",
-  "@Account.add": {
-    "description": "添加帳戶 按鈕/提示文本/標題",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Home.exitContext": "確定要關閉系統嗎？",
-  "@Home.exitContext": {
-    "description": "確定要關閉系統嗎？",
-    "type": "text",
-    "placeholders": {}
-  },
-  "Settings.theme": "主題設定",
-  "@Settings.theme": {
-    "description": "主題設定",
+  "Home.name": "名稱",
+  "@Home.name": {
+    "description": "搜索名称",
     "type": "text",
     "placeholders": {}
   },
@@ -313,14 +295,33 @@
       }
     }
   },
-  "Photo.video": "視頻",
-  "@Photo.video": {
-    "description": "視頻",
+  "App.settings": "設定",
+  "@App.settings": {
+    "description": "設定 按鈕/提示文本",
     "type": "text",
     "placeholders": {}
   },
-  "App Name": "PiwigoPPG",
-  "@App Name": {
+  "Reviews.noThanks": "不用了",
+  "@Reviews.noThanks": {
+    "description": "不用了",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.large": "大",
+  "@Photo.large": {
+    "description": "大",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.saveSucess": "數據已保存",
+  "@App.saveSucess": {
+    "description": "提示信息 : 數據已保存",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Reviews.Sure": "當然！",
+  "@Reviews.Sure": {
+    "description": "當然！",
     "type": "text",
     "placeholders": {}
   },
@@ -330,45 +331,57 @@
     "type": "text",
     "placeholders": {}
   },
-  "Photo.small": "小",
-  "@Photo.small": {
-    "description": "小",
-    "type": "text",
-    "placeholders": {}
-  },
   "SettingsLanguage.title": "語言設定",
   "@SettingsLanguage.title": {
     "description": "頁面標題 : 語言設定",
     "type": "text",
     "placeholders": {}
   },
-  "App.shareTo": "分享到",
-  "@App.shareTo": {
-    "description": "分享到 按鈕/提示文本",
+  "Error.title": "錯誤",
+  "@Error.title": {
+    "description": "頁面標題 錯誤信息顯示",
     "type": "text",
     "placeholders": {}
   },
-  "App.loading": "正在加載中...",
-  "@App.loading": {
-    "description": "正在加載中... 提示文本",
+  "SettingsPlay.autoplay": "自動播放",
+  "@SettingsPlay.autoplay": {
+    "description": "自動播放",
     "type": "text",
     "placeholders": {}
   },
-  "Photo.smallX": "超小",
-  "@Photo.smallX": {
-    "description": "超小",
+  "Home.exitTitle": "關閉系統",
+  "@Home.exitTitle": {
+    "description": "導航按鈕 : 關閉系統",
     "type": "text",
     "placeholders": {}
   },
-  "Reviews.doYouLike": "到目前為止，您如何看待我們的產品？",
-  "@Reviews.doYouLike": {
-    "description": "到目前為止，您如何看待我們的產品？",
+  "Reviews.fantastical": "太棒了！ 您想在商店給我們評級嗎？",
+  "@Reviews.fantastical": {
+    "description": "太棒了！ 您想在商店給我們評級嗎？",
     "type": "text",
     "placeholders": {}
   },
-  "Photo.before": "上一個",
-  "@Photo.before": {
-    "description": "上一個",
+  "Photo.next": "下一個",
+  "@Photo.next": {
+    "description": "下一個",
+    "type": "text",
+    "placeholders": {}
+  },
+  "App.issuesHelp": "尋求幫助",
+  "@App.issuesHelp": {
+    "description": "尋求幫助 按鈕/提示文本",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Account.url": "網址",
+  "@Account.url": {
+    "description": "網址",
+    "type": "text",
+    "placeholders": {}
+  },
+  "SettingsVideo.reverse": "反轉寬高比",
+  "@SettingsVideo.reverse": {
+    "description": "反轉寬高比",
     "type": "text",
     "placeholders": {}
   },
@@ -378,51 +391,68 @@
     "type": "text",
     "placeholders": {}
   },
-  "SettingsVideo.rotate": "旋轉",
-  "@SettingsVideo.rotate": {
-    "description": "旋轉",
-    "type": "text",
-    "placeholders": {}
-  },
   "SettingsVideo.scale": "縮放",
   "@SettingsVideo.scale": {
     "description": "縮放",
     "type": "text",
     "placeholders": {}
   },
-  "SettingsPlay.title": "播放設定",
-  "@SettingsPlay.title": {
-    "description": "頁面標題 : 播放設定",
+  "SettingsQuality.quality": "優化品質 (默認)",
+  "@SettingsQuality.quality": {
+    "description": "優化品質 (默認)",
     "type": "text",
     "placeholders": {}
   },
-  "Photo.smallXX": "極小",
-  "@Photo.smallXX": {
-    "description": "極小",
+  "App Name": "PiwigoPPG",
+  "@App Name": {
     "type": "text",
     "placeholders": {}
   },
-  "App.home": "首頁",
-  "@App.home": {
-    "description": "首頁 按鈕/提示文本",
+  "Settings.theme": "主題設定",
+  "@Settings.theme": {
+    "description": "主題設定",
     "type": "text",
     "placeholders": {}
   },
-  "Reviews.dislike": "不喜歡",
-  "@Reviews.dislike": {
-    "description": "不喜歡",
+  "App.sucess": "成功",
+  "@App.sucess": {
+    "description": "成功 標題/提示文本",
     "type": "text",
     "placeholders": {}
   },
-  "Home.nameNotSupportEmpty": "動漫名稱不能爲空",
-  "@Home.nameNotSupportEmpty": {
-    "description": "搜索名称不能为空",
+  "Photo.smallX": "超小",
+  "@Photo.smallX": {
+    "description": "超小",
     "type": "text",
     "placeholders": {}
   },
-  "App.openInBrowser": "在瀏覽器中開啓",
-  "@App.openInBrowser": {
-    "description": "在瀏覽器中開啓 按鈕/提示文本",
+  "Account.password": "密碼",
+  "@Account.password": {
+    "description": "密碼",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Settings.language": "語言設定",
+  "@Settings.language": {
+    "description": "語言設定",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Photo.original": "原始",
+  "@Photo.original": {
+    "description": "原始",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Settings.systemDefault": "系統默認",
+  "@Settings.systemDefault": {
+    "description": "系統默認",
+    "type": "text",
+    "placeholders": {}
+  },
+  "Settings.title": "系統設定",
+  "@Settings.title": {
+    "description": "頁面標題 : 系統設定",
     "type": "text",
     "placeholders": {}
   }
