@@ -5,7 +5,6 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_share_me/flutter_share_me.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:piwigo/db/play.dart';
 import 'package:piwigo/db/video.dart';
@@ -20,6 +19,7 @@ import 'package:ppg_ui/ppg_ui.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
+import 'package:flutter_share_me/flutter_share_me.dart';
 
 class MyPhotoView extends StatefulWidget {
   const MyPhotoView({
@@ -235,7 +235,8 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
   int _getValue(BuildContext context) {
     if (_value == null) {
       final qual = quality;
-      final size = MediaQuery.of(context).size;
+      final mediaQuery = MediaQuery.of(context);
+      final size = mediaQuery.size * mediaQuery.devicePixelRatio;
       for (var i = 0; i < qual.length - 1; i++) {
         final derivative = qual[i].item2;
         if (derivative.width >= size.width ||

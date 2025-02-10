@@ -29,14 +29,18 @@ class MyImage extends StatelessWidget {
         focusNode: focusNode,
       );
     }
-
+    final mediaQuery = MediaQuery.of(context);
+    final devicePixelRatio = mediaQuery.devicePixelRatio;
     return _ImageView(
       tag: "photoView_${image.id}",
       onTap: onTap,
       focusNode: focusNode,
       width: width,
       height: height,
-      url: image.getDerivative(width.toInt(), height.toInt()).url,
+      url: image
+          .getDerivative((width * devicePixelRatio).toInt(),
+              (height * devicePixelRatio).toInt())
+          .url,
     );
   }
 

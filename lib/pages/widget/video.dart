@@ -161,9 +161,13 @@ class _MyVideoState extends UIState<MyVideo> {
 
   Widget _buildInit(BuildContext context) {
     final theme = Theme.of(context);
+    final mediaQuery = MediaQuery.of(context);
+    final devicePixelRatio = mediaQuery.devicePixelRatio;
+    final url = image
+        .getDerivative((widget.width * devicePixelRatio).toInt(),
+            (widget.height * devicePixelRatio).toInt())
+        .url;
 
-    final url =
-        image.getDerivative(widget.width.toInt(), widget.height.toInt()).url;
     return Ink(
       width: width,
       height: height,
