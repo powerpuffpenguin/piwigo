@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
@@ -56,12 +57,39 @@ class _MyFullscreenPageState extends State<MyFullscreenPage> {
 
   _init() async {
     await for (var i in _finish.stream) {
-      if (i != widget.controller.value || !_autoplayController.value) {
+      // 比不需要自動播放
+      if (i != widget.controller.value ||
+          !_autoplayController.value ||
+          widget.source.length < 2) {
         continue;
       }
+
+      final data = MyPlay.instance.data;
+      // 隨機播放
+      if (data.random) {
+        final rand = Random();
+        int found;
+
+        while (true) {
+          found = rand.nextInt(widget.source.length);
+
+          if (found != i) {
+            widget.controller.swipeTo(found);
+            break;
+          }
+        }
+        continue;
+      }
+
+      // 順序播放
       final val = i + 1;
       if (val < widget.source.length) {
         widget.controller.swipeTo(val);
+        continue;
+      }
+      // 順序播放完成
+      if (data.loop) {
+        widget.controller.swipeTo(0);
       }
     }
   }

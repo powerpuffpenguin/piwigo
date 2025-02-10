@@ -241,6 +241,8 @@ KeyEventResult widgetSubmit(Widget w) {
     submit = w.onPressed;
   } else if (w is BackButton) {
     submit = w.onPressed;
+  } else if (w is FloatingActionButton) {
+    submit = w.onPressed;
   } else {
     return KeyEventResult.ignored;
   }

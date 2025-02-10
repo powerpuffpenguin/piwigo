@@ -62,6 +62,14 @@ class SettingsPlay {
         'SettingsPlay.autoplay',
         desc: '自動播放',
       );
+  String get random => Intl.message(
+        'SettingsPlay.random',
+        desc: '隨機播放相冊',
+      );
+  String get loop => Intl.message(
+        'SettingsPlay.loop',
+        desc: '循環播放相冊',
+      );
   String get waitSeconds => Intl.message(
         'SettingsPlay.waitSeconds',
         desc: '等待秒數',

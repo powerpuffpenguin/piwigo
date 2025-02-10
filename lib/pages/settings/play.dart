@@ -1,18 +1,9 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:piwigo/db/play.dart';
 import 'package:piwigo/i18n/generated_i18n.dart';
 import 'package:piwigo/pages/widget/spin.dart';
-import 'package:piwigo/pages/widget/state.dart';
-
-class _FocusID {
-  _FocusID._();
-  static const arrowBack = MyFocusNode.arrowBack;
-  static const opened = 'opened';
-  static const seconds = 'seconds';
-  static const submit = 'submit';
-}
+import 'package:piwigo/tv/focusable.dart';
 
 class MySettingsPlayPage extends StatefulWidget {
   const MySettingsPlayPage({
@@ -22,17 +13,35 @@ class MySettingsPlayPage extends StatefulWidget {
   _MySettingsPlayPageState createState() => _MySettingsPlayPageState();
 }
 
-abstract class _State extends MyState<MySettingsPlayPage> {
+class _MySettingsPlayPageState extends State {
   bool _opened = false;
-
+  bool _random = false;
+  bool _loop = false;
+  final _focusNode = FocusNode();
   final _secondsController = TextEditingController();
   String _seconds = '';
 
+  final _focusNodeBar = FocusNode();
+
   final _form = GlobalKey<FormState>();
   _toglleOpened() => setState(() => _opened = !_opened);
+  _toglleRandom() => setState(() => _random = !_random);
+  _toglleLoop() => setState(() => _loop = !_loop);
+  bool disabled = false;
+  bool closed = false;
+
   bool get isNotChanged {
     final data = MyPlay.instance.data;
-    return _opened == data.opend && _seconds == data.seconds.toString();
+    return _opened == data.opend &&
+        _random == data.random &&
+        _loop == data.loop &&
+        _seconds == data.seconds.toString();
+  }
+
+  aliveSetState(void Function() fn) {
+    if (!closed) {
+      setState(fn);
+    }
   }
 
   _save() async {
@@ -49,10 +58,13 @@ abstract class _State extends MyState<MySettingsPlayPage> {
     setState(() {
       disabled = true;
     });
+
     try {
       await MyPlay.instance.setData(
         Play(
           opend: _opened,
+          random: _random,
+          loop: _loop,
           seconds: int.parse(_seconds),
         ),
       );
@@ -67,23 +79,30 @@ abstract class _State extends MyState<MySettingsPlayPage> {
       });
     }
   }
-}
 
-class _MySettingsPlayPageState extends _State with _KeyboardComponent {
   @override
   initState() {
     super.initState();
-    listenKeyUp(onKeyUp);
     final data = MyPlay.instance.data;
     _opened = data.opend;
+    _random = data.random;
+    _loop = data.loop;
     _seconds = data.seconds.toString();
     _secondsController.text = _seconds;
   }
 
   @override
+  void dispose() {
+    closed = true;
+    _focusNode.dispose();
+    _focusNodeBar.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () => Future.value(enabled),
+      onWillPop: () => Future.value(!disabled),
       child: _build(context),
     );
   }
@@ -91,17 +110,34 @@ class _MySettingsPlayPageState extends _State with _KeyboardComponent {
   Widget _build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: backOfAppBar(context, disabled: disabled),
+        leading: FocusableWidget(
+          focusNode: _focusNodeBar,
+          child: BackButton(
+            onPressed: () => Navigator.maybePop(context),
+          ),
+          onMove: (f, k, d) {
+            switch (d) {
+              case TraversalDirection.up:
+                _focusNode.requestFocus();
+                return KeyEventResult.handled;
+              default:
+                break;
+            }
+            return KeyEventResult.ignored;
+          },
+        ),
         title: Text(S.of(context).settingsVideo.title),
       ),
       body: Form(
         key: _form,
         child: ListView(
           children: [
-            FocusScope(
-              node: focusScopeNode,
+            FocusableWidget(
+              onOK: (_, __) {
+                _toglleOpened();
+                return KeyEventResult.handled;
+              },
               child: SwitchListTile(
-                focusNode: createFocusNode(_FocusID.opened),
                 title: Text(S.of(context).settingsPlay.autoplay),
                 value: _opened,
                 onChanged: disabled
@@ -115,36 +151,70 @@ class _MySettingsPlayPageState extends _State with _KeyboardComponent {
                       },
               ),
             ),
-            FocusScope(
-              node: focusScopeNode,
-              child: TextFormField(
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                enabled: enabled,
-                focusNode: createFocusNode(_FocusID.seconds),
-                controller: _secondsController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.scale),
-                  label: Text(S.of(context).settingsPlay.waitSeconds),
-                ),
-                onSaved: (val) {
-                  _seconds = val ?? '';
-                },
-                validator: (str) {
-                  try {
-                    int v = int.parse(str ?? '');
-                    if (v < 1 || v > 60) {
-                      return "scale must range at [1,60]";
-                    }
-                  } catch (e) {
-                    return '$e';
-                  }
-                  return null;
-                },
-                onEditingComplete: () {
-                  setFocus(_FocusID.submit);
-                },
+            FocusableWidget(
+              onOK: (_, __) {
+                _toglleRandom();
+                return KeyEventResult.handled;
+              },
+              child: SwitchListTile(
+                title: Text(S.of(context).settingsPlay.random),
+                value: _random,
+                onChanged: disabled
+                    ? null
+                    : (val) {
+                        if (_random != val) {
+                          aliveSetState(() {
+                            _random = val;
+                          });
+                        }
+                      },
               ),
+            ),
+            FocusableWidget(
+              onOK: (_, __) {
+                _toglleLoop();
+                return KeyEventResult.handled;
+              },
+              child: SwitchListTile(
+                title: Text(S.of(context).settingsPlay.loop),
+                value: _loop,
+                onChanged: disabled
+                    ? null
+                    : (val) {
+                        if (_loop != val) {
+                          aliveSetState(() {
+                            _loop = val;
+                          });
+                        }
+                      },
+              ),
+            ),
+            TextFormField(
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              enabled: !disabled,
+              controller: _secondsController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.scale),
+                label: Text(S.of(context).settingsPlay.waitSeconds),
+              ),
+              onSaved: (val) {
+                _seconds = val ?? '';
+              },
+              validator: (str) {
+                try {
+                  int v = int.parse(str ?? '');
+                  if (v < 1 || v > 60) {
+                    return "scale must range at [1,60]";
+                  }
+                } catch (e) {
+                  return '$e';
+                }
+                return null;
+              },
+              onEditingComplete: () {
+                _focusNode.requestFocus();
+              },
             ),
           ],
         ),
@@ -157,74 +227,24 @@ class _MySettingsPlayPageState extends _State with _KeyboardComponent {
     if (disabled) {
       return createSpinFloating();
     }
-    return FocusScope(
-      node: focusScopeNode,
+    return FocusableWidget(
       child: FloatingActionButton(
+        focusNode: _focusNode,
         focusColor: Theme.of(context).focusColor.withOpacity(0.5),
-        focusNode: createFocusNode(_FocusID.submit),
         child: const Icon(Icons.save),
         tooltip: S.of(context).app.save,
         onPressed: disabled ? null : _save,
       ),
+      onMove: (f, k, d) {
+        switch (d) {
+          case TraversalDirection.down:
+            _focusNodeBar.requestFocus();
+            return KeyEventResult.handled;
+          default:
+            break;
+        }
+        return KeyEventResult.ignored;
+      },
     );
-  }
-}
-
-mixin _KeyboardComponent on _State {
-  void onKeyUp(KeyEvent evt) {
-    if (evt.logicalKey == LogicalKeyboardKey.select) {
-      if (enabled) {
-        final focused = focusedNode();
-        if (focused != null) {
-          _selectFocused(focused);
-        }
-      }
-    } else if (evt.logicalKey == LogicalKeyboardKey.arrowUp) {
-      final focused = focusedNode();
-      if (focused != null) {
-        switch (focused.id) {
-          case _FocusID.arrowBack:
-            setFocus(_FocusID.submit, focused: focused.focusNode);
-            break;
-        }
-      }
-    } else if (evt.logicalKey == LogicalKeyboardKey.arrowRight) {
-      final focused = focusedNode();
-      if (focused != null) {
-        switch (focused.id) {
-          case _FocusID.submit:
-            setFocus(_FocusID.arrowBack, focused: focused.focusNode);
-            break;
-        }
-      }
-    }
-  }
-
-  _nextFocus(MyFocusNode focused) {
-    switch (focused.id) {
-      case _FocusID.opened:
-        setFocus(_FocusID.seconds, focused: focused.focusNode);
-        break;
-      case _FocusID.seconds:
-        setFocus(_FocusID.submit, focused: focused.focusNode);
-        break;
-    }
-  }
-
-  _selectFocused(MyFocusNode focused) {
-    switch (focused.id) {
-      case _FocusID.arrowBack:
-        Navigator.of(context).pop();
-        break;
-      case _FocusID.opened:
-        _toglleOpened();
-        break;
-      case _FocusID.seconds:
-        _nextFocus(focused);
-        break;
-      case _FocusID.submit:
-        _save();
-        break;
-    }
   }
 }
