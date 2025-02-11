@@ -1,3 +1,7 @@
+# 0.0.13
+
+* fix autoplay bug
+
 # 0.0.12
 
 * Add random play album

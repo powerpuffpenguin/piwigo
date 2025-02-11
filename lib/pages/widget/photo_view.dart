@@ -96,23 +96,43 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
         _initPlayer();
       }
     }
+
+    _autonext();
   }
 
   bool _cannext = true;
-  _autonext() {
-    if (!widget.swipe && !widget.isVideo) {
-      var seconds = MyPlay.instance.data.seconds;
-      if (seconds < 1) {
-        seconds = 1;
-      }
-      if (_cannext) {
-        _cannext = false;
-        debugPrint("------next timer $seconds");
-        _timer = Timer.periodic(Duration(seconds: seconds), (timer) {
-          if (isNotClosed) {
-            widget.sink.add(widget.index);
-          }
-        });
+  bool _isautoplaying = false;
+  _autonext() async {
+    if (_isautoplaying || widget.swipe || widget.isVideo) {
+      return;
+    }
+    _isautoplaying = true;
+    _doAutoNext().whenComplete(() {
+      _isautoplaying = false;
+    });
+  }
+
+  Future<void> _doAutoNext() async {
+    var total = MyPlay.instance.data.seconds;
+    if (total < 1) {
+      total = 5;
+    } else {
+      total *= 5;
+    }
+    var count = 0;
+    while (true) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (isClosed) {
+        break;
+      } else if (!_cannext) {
+        count = 0;
+        _cannext = true;
+      } else {
+        count++;
+        if (count >= total) {
+          widget.sink.add(widget.index);
+          break;
+        }
       }
     }
   }
@@ -132,15 +152,24 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
   }
 
   _autoplayControllerListener() {
+    if (isClosed) {
+      return;
+    }
     final val = widget.autoplayController.value;
     if (val != _autoPlay) {
       setState(() {
         _autoPlay = val;
+        if (val) {
+          _autonext();
+        }
       });
     }
   }
 
   _showControllerListener() {
+    if (isClosed) {
+      return;
+    }
     final val = widget.showController.value;
     if (val != _showController) {
       setState(() {
@@ -310,13 +339,15 @@ class _MyPhotoViewState extends UIState<MyPhotoView> {
             ),
             imageProvider: NetworkImage(qual[value].item2.url),
             loadingBuilder: (context, evt) {
+              // 標記未就緒
+              _cannext = false;
+
               final expected = evt?.expectedTotalBytes ?? 0;
               double value = 0;
               if (expected != 0) {
                 final cumulative = evt?.cumulativeBytesLoaded ?? 0;
                 if (cumulative == expected) {
                   value = 1;
-                  _autonext();
                 } else {
                   value = cumulative / expected;
                 }
@@ -831,7 +862,7 @@ class _VideoPlayerState extends UIState<_VideoPlayer> {
     final aspectRatio = _aspectRatio
         ? 1 / widget.controller.value.aspectRatio
         : widget.controller.value.aspectRatio;
-    debugPrint('${widget.controller.value.aspectRatio} $aspectRatio');
+    // debugPrint('${widget.controller.value.aspectRatio} $aspectRatio');
     return AspectRatio(
       aspectRatio: aspectRatio,
       child: VideoPlayer(widget.controller),
