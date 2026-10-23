@@ -92,7 +92,7 @@ class PageInfo {
       : page = json['page'] ?? 0,
         pageCount = json['per_page'] ?? 0,
         count = json['count'] ?? 0,
-        totalCount = json['total_count'] ?? '0';
+        totalCount = '${json['total_count']?? '0'}' ;
 
   Map<String, dynamic> toJson() => {
         "page": page,
@@ -299,6 +299,7 @@ mixin Categories on RpcClient {
         ),
         cancelToken: cancelToken,
       );
+      
       final obj = decodeResponse(resp.data);
       return PageImages.fromJson(obj['result'], Uri.parse(dio.options.baseUrl));
     } on DioError catch (e) {
